@@ -23,6 +23,48 @@ class Mail @Inject() (mailerClient: MailerClient) {
     ))
   }
 
+  def all(victimName: String, userName: String, zencroissantURL: String) = {
+    val fromField = "Zencroissants <"+ Zencroissants.Mail.contact +">"
+
+    val toField = Seq("All <"+ Mail.All.value +">")
+    val body = All.template(victimName, userName, zencroissantURL: String)
+
+    send(Email(
+      subject = "Zencroissant a désigné sa nouvelle victime !",
+      from = fromField,
+      to = toField,
+      bodyHtml = Some(body)
+    ))
+  }
+
+  def pression(victimName: String, userName: String) = {
+    val fromField = "Zencroissants <"+ Zencroissants.Mail.contact +">"
+
+    val toField = Seq("All <"+ Mail.All.value +">")
+    val body = Pression.template(victimName, userName)
+
+    send(Email(
+      subject = userName + " vient de te relancer. Tu vas devoir payer tes croissants rapidos.",
+      from = fromField,
+      to = toField,
+      bodyHtml = Some(body)
+    ))
+  }
+
+  def victim(victimName: String) = {
+    val fromField = "Zencroissants <"+ Zencroissants.Mail.contact +">"
+
+    val toField = Seq("All <"+ Mail.All.value +">")
+    val body = Victim.template(victimName)
+
+    send(Email(
+      subject = "Croissify !",
+      from = fromField,
+      to = toField,
+      bodyHtml = Some(body)
+    ))
+  }
+
   def send(email: Email) = {
     mailerClient.send(email)
   }
