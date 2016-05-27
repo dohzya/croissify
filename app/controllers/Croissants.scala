@@ -46,7 +46,7 @@ class Croissants @Inject()(
   private def isZenEmail(email: String): Boolean = {
     val domains = Set("zengularity.com", "zenexity.fr", "zenexity.com")
 
-    domains.exists(domain => email.endsWith(domain))
+    domains.exists(domain => email.endsWith(domain)) && email != "croissants@zengularity.com"
   }
 
 }
