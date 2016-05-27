@@ -46,8 +46,10 @@ class Croissants @Inject()(
     )
   }
 
-  def list = Action.async {
-    Croissant.list.map(croissants => Ok(Json.toJson(croissants)))
+  def index = Action.async {
+    Croissant.list.map { list =>
+      Ok(views.html.index(list))
+    }
   }
 
   private def getUserIdFromEmail(email: String): Option[String] = {

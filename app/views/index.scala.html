@@ -1,3 +1,7 @@
+@import org.joda.time.{Period, DateTime}
+
+@(list: Seq[models.Croissant])
+
 @main {
     <div class="lastBeenHad">
         <img class="croissant_aside" src="@routes.Assets.versioned("/images/croissant.svg")" />
@@ -17,33 +21,25 @@
         <div class="listBeenHad__content">
             <h1 class="listBeenHad__content__title">Ils doivent payer leurs croissants</h1>
 
-            <div class="listBeenHad__content__item">
-                <div class="listBeenHad__content__item__person">
-                    <p class="listBeenHad__content__item__person__name">
-                        <b>Arnaud</b> Lewis
-                    </p>
-                    <p class="listBeenHad__content__item__person__howlong">
-                        Il les doit depuis déjà 34 jours.
-                    </p>
+            @list.map { item =>
+                <div class="listBeenHad__content__item">
+                    <div class="listBeenHad__content__item__person">
+                        <p class="listBeenHad__content__item__person__name">
+                            <b>@item.victimId</b>
+                        </p>
+                        <p class="listBeenHad__content__item__person__howlong">
+                            @defining(new Period(item.creationDate.getMillis, DateTime.now.getMillis).getDays) { days =>
+                                Il les doit depuis déjà @days jours.
+                            }
+
+                        </p>
+                    </div>
+                    <div class="listBeenHad__content__item__actions">
+                        <button class="button button--large button--green">Je confirme, il a payé</button>
+                        <button class="button button--large button--red">Mettre la pression</button>
+                    </div>
                 </div>
-                <div class="listBeenHad__content__item__actions">
-                    <button class="button button--large button--green">Je confirme, il a payé</button>
-                    <button class="button button--large button--red">Mettre la pression</button>
-                </div>
-            </div>
-            <div class="listBeenHad__content__item">
-                <div class="listBeenHad__content__item__person">
-                    <p class="listBeenHad__content__item__person__name">
-                        <b>Denis</b> Mludek
-                    </p>
-                    <p class="listBeenHad__content__item__person__howlong">
-                        Il les doit depuis déjà 54 jours.
-                    </p>
-                </div>
-                <div class="listBeenHad__content__item__actions">
-                    <span class="listBeenHad__content__item__actions__unavailable">Tu pensais vraiment pouvoir voter pour toi Jean ?</span>
-                </div>
-            </div>
+            }
         </div>
     </div>
 }
