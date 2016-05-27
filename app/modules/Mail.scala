@@ -1,16 +1,18 @@
 package modules.mail
 
 import javax.inject.Inject
+
 import play.api.libs.mailer._
 import java.io.File
+
+import common.Config
 import org.apache.commons.mail.EmailAttachment
-import core.common.Global
 import modules.mail.templates._
 
-class Mail @Inject() (global: Global, mailerClient: MailerClient) {
+class Mail @Inject() (config: Config, mailerClient: MailerClient) {
 
-  def confirm(victimName: String, userName: String, to: String = Mail.All.value, toName: String = "All", subject : String = "Croissants") = {
-    val fromField = "Zencroissants <"+ global.Mail.contact +">"
+  def confirm(victimName: String, userName: String, to: String = config.Mail.all, toName: String = "All", subject : String = "Croissants") = {
+    val fromField = "Zencroissants <"+ config.Mail.contact +">"
 
     val toField = Seq(toName + "<"+ to +">")
     val body = Confirm.template(victimName, userName)
@@ -23,11 +25,11 @@ class Mail @Inject() (global: Global, mailerClient: MailerClient) {
     ))
   }
 
-  def all(victimName: String, userName: String, zencroissantURL: String) = {
-    val fromField = "Zencroissants <"+ global.Mail.contact +">"
+  def all(victimName: String, zencroissantURL: String) = {
+    val fromField = "Zencroissants <"+ config.Mail.contact +">"
 
-    val toField = Seq("All <"+ Mail.All.value +">")
-    val body = All.template(victimName, userName, zencroissantURL: String)
+    val toField = Seq("All <"+ config.Mail.all +">")
+    val body = All.template(victimName, zencroissantURL: String)
 
     send(Email(
       subject = "Zencroissant a désigné sa nouvelle victime !",
@@ -38,7 +40,7 @@ class Mail @Inject() (global: Global, mailerClient: MailerClient) {
   }
 
   def pression(victimName: String, userName: String, to: String) = {
-    val fromField = "Zencroissants <"+ global.Mail.contact +">"
+    val fromField = "Zencroissants <"+ config.Mail.contact +">"
 
     val toField = Seq(victimName + " <"+ to +">")
     val body = Pression.template(victimName, userName)
@@ -52,7 +54,7 @@ class Mail @Inject() (global: Global, mailerClient: MailerClient) {
   }
 
   def victim(victimName: String, to: String) = {
-    val fromField = "Zencroissants <"+ global.Mail.contact +">"
+    val fromField = "Zencroissants <"+ config.Mail.contact +">"
 
     val toField = Seq(victimName + " <"+ to +">")
     val body = Victim.template(victimName)
@@ -68,9 +70,4 @@ class Mail @Inject() (global: Global, mailerClient: MailerClient) {
   def send(email: Email) = {
     mailerClient.send(email)
   }
-}
-
-object Mail {
-  case class Destination(value: String)
-  object All extends Destination("all@zengularity.com")
 }

@@ -28,7 +28,7 @@ object Status {
 }
 
 case class Croissant(
-  email: String,
+  victimId: String,
   creationDate: DateTime,
   doneDate: Option[DateTime],
   status: Status,
@@ -39,8 +39,8 @@ object Croissant extends Repository[Croissant] {
   val collectionName: String = "croissants"
   implicit val format: OFormat[Croissant] = Json.format[Croissant] //.asInstanceOf[OFormat[Croissant]]
 
-  def add(email: String)(implicit reactiveMongoApi: ReactiveMongoApi): Future[WriteResult] = {
-    val croissant = Croissant(email, DateTime.now(), None, Status.Pending, Seq())
+  def add(userId: String)(implicit reactiveMongoApi: ReactiveMongoApi): Future[WriteResult] = {
+    val croissant = Croissant(userId, DateTime.now(), None, Status.Pending, Seq())
     Croissant.save(croissant)
   }
 
