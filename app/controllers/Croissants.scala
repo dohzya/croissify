@@ -32,9 +32,11 @@ class Croissants @Inject()(
           getUserIdFromEmail(email) match {
             case Some(victimId  )  =>
               Logger.debug(s"New croissants for : $email")
-              mailer.victim(victimId, email)
-              mailer.all(victimId, config.Ui.host)
-              Croissant.add(victimId).map(_ => Ok)
+              Croissant.add(victimId).map { _ =>
+                mailer.victim(victimId, email)
+                mailer.all(victimId, subject, config.Ui.host)
+                Ok
+              }
             case None =>
               Logger.debug(s"Mail ignored from : $email")
               Future.successful(Ok)

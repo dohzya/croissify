@@ -25,11 +25,11 @@ class Mail @Inject() (config: Config, mailerClient: MailerClient) {
     ))
   }
 
-  def all(victimName: String, zencroissantURL: String) = {
+  def all(victimName: String, message: String, zencroissantURL: String) = {
     val fromField = "Zencroissants <"+ config.Mail.contact +">"
 
     val toField = Seq("All <"+ config.Mail.all +">")
-    val body = All.template(victimName, zencroissantURL: String)
+    val body = All.template(victimName, message, zencroissantURL)
 
     send(Email(
       subject = "Zencroissant a désigné sa nouvelle victime !",
