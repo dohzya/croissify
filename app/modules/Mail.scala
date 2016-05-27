@@ -4,13 +4,13 @@ import javax.inject.Inject
 import play.api.libs.mailer._
 import java.io.File
 import org.apache.commons.mail.EmailAttachment
-import core.common.Zencroissants
+import core.common.Global
 import modules.mail.templates._
 
-class Mail @Inject() (mailerClient: MailerClient) {
+class Mail @Inject() (global: Global, mailerClient: MailerClient) {
 
   def confirm(victimName: String, userName: String, to: String = Mail.All.value, toName: String = "All", subject : String = "Croissants") = {
-    val fromField = "Zencroissants <"+ Zencroissants.Mail.contact +">"
+    val fromField = "Zencroissants <"+ global.Mail.contact +">"
 
     val toField = Seq(toName + "<"+ to +">")
     val body = Confirm.template(victimName, userName)
@@ -24,7 +24,7 @@ class Mail @Inject() (mailerClient: MailerClient) {
   }
 
   def all(victimName: String, userName: String, zencroissantURL: String) = {
-    val fromField = "Zencroissants <"+ Zencroissants.Mail.contact +">"
+    val fromField = "Zencroissants <"+ global.Mail.contact +">"
 
     val toField = Seq("All <"+ Mail.All.value +">")
     val body = All.template(victimName, userName, zencroissantURL: String)
@@ -37,10 +37,10 @@ class Mail @Inject() (mailerClient: MailerClient) {
     ))
   }
 
-  def pression(victimName: String, userName: String) = {
-    val fromField = "Zencroissants <"+ Zencroissants.Mail.contact +">"
+  def pression(victimName: String, userName: String, to: String) = {
+    val fromField = "Zencroissants <"+ global.Mail.contact +">"
 
-    val toField = Seq("All <"+ Mail.All.value +">")
+    val toField = Seq(victimName + " <"+ to +">")
     val body = Pression.template(victimName, userName)
 
     send(Email(
@@ -51,10 +51,10 @@ class Mail @Inject() (mailerClient: MailerClient) {
     ))
   }
 
-  def victim(victimName: String) = {
-    val fromField = "Zencroissants <"+ Zencroissants.Mail.contact +">"
+  def victim(victimName: String, to: String) = {
+    val fromField = "Zencroissants <"+ global.Mail.contact +">"
 
-    val toField = Seq("All <"+ Mail.All.value +">")
+    val toField = Seq(victimName + " <"+ to +">")
     val body = Victim.template(victimName)
 
     send(Email(
