@@ -30,7 +30,7 @@ class Croissants @Inject()(
         case (from, subject, config.Api.secret) =>
           val email = from.trim
           getUserIdFromEmail(email) match {
-            case Some(victimId  )  =>
+            case Some(victimId) =>
               Logger.debug(s"New croissants for : $email")
               Croissant.add(victimId).map { _ =>
                 mailer.victim(victimId, email)

@@ -1,5 +1,4 @@
 @()()
 
-Bonne Chance <br/>
 Proverbe Croissify : On apprend de ses erreurs. <br/>
 Ce mail est sponsorisé par Croissify. Bonne journée et bisous !

@@ -8,6 +8,7 @@ class Config @Inject() (conf: Configuration) {
   object Mail {
     lazy val contact = conf.getString("mail.contact").getOrElse(sys.error("Missing contact email"))
     lazy val all = conf.getString("mail.all").getOrElse(sys.error("Missing all email"))
+    val mock = conf.getBoolean("mail.mock").getOrElse(false)
   }
 
   object Api {

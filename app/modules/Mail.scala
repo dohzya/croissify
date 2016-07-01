@@ -15,27 +15,25 @@ class Mail @Inject() (config: Config, mailerClient: MailerClient) {
     val fromField = "Zencroissants <"+ config.Mail.contact +">"
 
     val toField = Seq(toName + "<"+ to +">")
-    val body = Confirm.template(victimName, userName)
+    val body = views.txt.email.confirmCroissants(victimName, userName).toString
 
     send(Email(
       subject = subject,
       from = fromField,
       to = toField,
-      bodyHtml = Some(body)
+      bodyHtml = Some(body.toString)
     ))
   }
 
   def all(victimName: String, message: String, zencroissantURL: String) = {
-    val fromField = "Zencroissants <"+ config.Mail.contact +">"
 
-    val toField = Seq("All <"+ config.Mail.all +">")
-    val body = All.template(victimName, message, zencroissantURL)
+    val body = views.txt.email.zenall(victimName, message, zencroissantURL).toString
 
     send(Email(
       subject = "Zencroissant a désigné sa nouvelle victime !",
-      from = fromField,
-      to = toField,
-      bodyHtml = Some(body)
+      from = "Zencroissants <"+ config.Mail.contact +">",
+      to = Seq("All <"+ config.Mail.all +">"),
+      bodyHtml = Some(body.toString)
     ))
   }
 
@@ -43,13 +41,13 @@ class Mail @Inject() (config: Config, mailerClient: MailerClient) {
     val fromField = "Zencroissants <"+ config.Mail.contact +">"
 
     val toField = Seq(victimName + " <"+ to +">")
-    val body = Pression.template(victimName, userName)
+    val body = views.txt.email.pression(victimName, userName).toString
 
     send(Email(
       subject = userName + " vient de te relancer. Tu vas devoir payer tes croissants rapidos.",
       from = fromField,
       to = toField,
-      bodyHtml = Some(body)
+      bodyHtml = Some(body.toString)
     ))
   }
 
@@ -57,17 +55,20 @@ class Mail @Inject() (config: Config, mailerClient: MailerClient) {
     val fromField = "Zencroissants <"+ config.Mail.contact +">"
 
     val toField = Seq(victimName + " <"+ to +">")
-    val body = Victim.template(victimName)
+    val body = views.txt.email.victim(victimName)
 
     send(Email(
       subject = "Croissify !",
       from = fromField,
       to = toField,
-      bodyHtml = Some(body)
+      bodyHtml = Some(body.toString)
     ))
   }
 
   def send(email: Email) = {
-    mailerClient.send(email)
+    if(config.Mail.mock) {
+      println(email)
+      mailerClient.send(email)
+    }
   }
 }
