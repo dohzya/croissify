@@ -1,21 +1,20 @@
-import React from 'react'
-import ReactDOM from 'react-dom'
-import R from 'ramda'
-import NotificationSystem from 'react-notification-system'
+import React from 'react';
+import ReactDOM from 'react-dom';
+import NotificationSystem from 'react-notification-system';
 
 export default React.createClass({
   _notificationSystem: null,
 
   notify(title, message, level, position, duration) {
-    if(!(title && message && level)) return
+    if(!(title && message && level)) return;
     const options = {
       'title': title,
       'message': message,
       'level': level,
       'position': position,
       'duration': duration
-    }
-    this._notificationSystem.addNotification(options)
+    };
+    this._notificationSystem.addNotification(options);
   },
 
   componentDidMount() {
@@ -23,12 +22,12 @@ export default React.createClass({
   },
 
   style() {
-    return {}
+    return {};
   },
 
   render() {
     return (
       <NotificationSystem ref="notificationSystem" style={this.style()} />
-    )
+    );
   }
-})
+});
