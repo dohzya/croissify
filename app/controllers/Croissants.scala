@@ -32,11 +32,12 @@ class Croissants @Inject()(
           getUserIdFromEmail(email) match {
             case Some(victimId) =>
               Logger.debug(s"New croissants for : $email")
-              val mbMessage: Option[String] = if(subject.isEmpty) {
-                Some(subject)
-              }else{
-                None
-              }
+              val mbMessage: Option[String] =
+                if(subject == null) {
+                  Some(subject)
+                }else{
+                  None
+                }
               Croissant.add(victimId).map { _ =>
                 mailer.victim(victimId, email)
                 mailer.all(victimId, mbMessage, config.Ui.host)
