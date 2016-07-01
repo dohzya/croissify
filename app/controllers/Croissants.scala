@@ -3,6 +3,7 @@ package controllers
 import javax.inject.{Inject, Singleton}
 
 import common.Config
+import jobs.GmailJob
 import models.Croissant
 import modules.mail.Mail
 import play.api.Logger
@@ -10,7 +11,6 @@ import play.api.data._
 import play.api.data.Forms._
 import play.api.mvc.{Action, ActionBuilder, Controller, Request, Result, WrappedRequest}
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.modules.reactivemongo.ReactiveMongoApi
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -19,8 +19,11 @@ import scala.concurrent.{ExecutionContext, Future}
 class Croissants @Inject()(
   val messagesApi: MessagesApi,
   val config: Config,
-  val mailer: Mail)
+  val mailer: Mail,
+  val gmailJob: GmailJob)
   (implicit reactiveMongoApi: ReactiveMongoApi, ec: ExecutionContext) extends Controller with I18nSupport {
+
+  gmailJob.schedule(None)
 
   case class AuthenticatedRequest[A](email: String, request: Request[A]) extends WrappedRequest[A](request)
 
