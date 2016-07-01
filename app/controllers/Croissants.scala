@@ -22,7 +22,9 @@ class Croissants @Inject()(
   val mailer: Mail)
   (implicit reactiveMongoApi: ReactiveMongoApi, ec: ExecutionContext) extends Controller with I18nSupport {
 
-  case class AuthenticatedRequest[A](email: String, request: Request[A]) extends WrappedRequest[A](request)
+  case class AuthenticatedRequest[A](email: String, request: Request[A]) extends WrappedRequest[A](request) {
+    def trigram = email.slice(0, email.indexOf('@'))
+  }
 
   object AuthenticatedAction extends ActionBuilder[AuthenticatedRequest] {
     def invokeBlock[A](request: Request[A], block: (AuthenticatedRequest[A]) => Future[Result]) = {
@@ -60,6 +62,26 @@ class Croissants @Inject()(
   def index = AuthenticatedAction.async {
     Croissant.list.map { list =>
       Ok(views.html.index(list))
+    }
+  }
+
+  def confirm(id: String) = AuthenticatedAction.async { request =>
+    Croissant.findById(id).map {
+      case Some(croissant) =>
+        println(s"Confirm $id by ${request.trigram}")
+        // Croissant.vote(id)
+        Ok(Json.obj("success" -> "Croissant confirmed"))
+      case None => NotFound(Json.obj("error" -> "Croissant not found :-("))
+    }
+  }
+
+  def pression(id: String) = AuthenticatedAction.async { request =>
+    Croissant.findById(id).map {
+      case Some(croissant) =>
+        println(s"Make pression on $id by ${request.trigram}")
+        // Croissant.pression(id)
+        Ok(Json.obj("success" -> "Pression on croissant FIRED"))
+      case None => NotFound(Json.obj("error" -> "Croissant not found :-("))
     }
   }
 

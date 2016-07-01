@@ -47,4 +47,6 @@ object Croissant extends Repository[Croissant] {
     Croissant.save(croissant)
   }
 
+  def findById(id: String)(implicit reactiveMongoApi: ReactiveMongoApi) = findByOpt(Json.obj("id" -> id))
+
 }
