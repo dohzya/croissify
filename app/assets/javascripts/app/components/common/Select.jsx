@@ -1,15 +1,15 @@
-import React from 'react'
-import ReactDOM from 'react-dom'
-import R from 'ramda'
-import onClickOutside from 'react-onclickoutside'
+import React from 'react';
+import ReactDOM from 'react-dom';
+import R from 'ramda';
+import onClickOutside from 'react-onclickoutside';
 
 const initialState = () => {
   return {
     isOpen: false,
     value: null,
     children: []
-  }
-}
+  };
+};
 export default onClickOutside(React.createClass({
 
   propTypes: {
@@ -22,70 +22,70 @@ export default onClickOutside(React.createClass({
   getInitialState: initialState,
 
   componentWillMount() {
-    const children = React.Children.toArray(this.props.children)
-    this.setState({'children': children, 'value': this.props.defaultValue})
-    this.preselectValue(children)
+    const children = React.Children.toArray(this.props.children);
+    this.setState({'children': children, 'value': this.props.defaultValue});
+    this.preselectValue(children);
   },
 
-  componentWillReceiveProps (nextProps) {
+  componentWillReceiveProps(nextProps) {
     if(nextProps.children.length !== this.props.children.length && nextProps.selectFirst && !nextProps.defaultValue) {
-      const children = React.Children.toArray(nextProps.children)
-      this.setState({'children': children})
-      this.preselectValue(children)
+      const children = React.Children.toArray(nextProps.children);
+      this.setState({'children': children});
+      this.preselectValue(children);
     }
   },
 
   preselectValue(children) {
     if(this.props.selectFirst && !this.props.defaultValue) {
-      const first = R.head(children)
-      if(first) this.selectValue(first.props.value)
+      const first = R.head(children);
+      if(first) this.selectValue(first.props.value);
     }
   },
 
   findLabel(value) {
-    const child = this.state.children.find((c) => c.props.value === value)
-    return child ? child.props.children : ''
+    const child = this.state.children.find((c) => c.props.value === value);
+    return child ? child.props.children : '';
   },
   //Required with onClickOutside wrapper
-  handleClickOutside: function(event) {
-    this.hide()
+  handleClickOutside() {
+    this.hide();
   },
 
   handleSelect(value, event) {
-    event.preventDefault()
-    event.stopPropagation()
-    this.selectValue(value)
-    this.hide()
+    event.preventDefault();
+    event.stopPropagation();
+    this.selectValue(value);
+    this.hide();
   },
 
   selectValue(value) {
     this.setState({
       'value': value
-    })
-    this.props.onChange(value)
+    });
+    this.props.onChange(value);
   },
 
   renderCustomOption() {
     return React.Children.map(this.props.children, (child, index) => {
-      return <li key={index} onClick={this.handleSelect.bind(null, child.props.value)}>{child.props.children}</li>
-    })
+      return <li key={index} onClick={this.handleSelect.bind(null, child.props.value)}>{child.props.children}</li>;
+    });
   },
 
   display() {
-    this.setState({'isOpen': true})
+    this.setState({'isOpen': true});
   },
 
   hide() {
-    this.setState({'isOpen': false})
+    this.setState({'isOpen': false});
   },
 
   toggle() {
-    if(this.state.isOpen) this.hide()
-    else this.display()
+    if(this.state.isOpen) this.hide();
+    else this.display();
   },
 
   label() {
-    return this.findLabel(this.state.value)
+    return this.findLabel(this.state.value);
   },
 
   render () {
@@ -106,7 +106,7 @@ export default onClickOutside(React.createClass({
           </ul>
         </div>
       </div>
-    )
+    );
   }
-}))
+}));
 

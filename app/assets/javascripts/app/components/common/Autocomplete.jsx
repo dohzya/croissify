@@ -1,51 +1,51 @@
-import React from 'react'
-import ReactDOM from 'react-dom'
-import R from 'ramda'
-import onClickOutside from 'react-onclickoutside'
+import React from 'react';
+import ReactDOM from 'react-dom';
+import R from 'ramda';
+import onClickOutside from 'react-onclickoutside';
 
-import { Typeahead }  from 'react-typeahead'
+import { Typeahead }  from 'react-typeahead';
 
-const DEFAULT_NB_ENTRIES = 8
+const DEFAULT_NB_ENTRIES = 8;
 
 /** ENTRY MODEL
 /*  Object which contains at least the key 'label' !
 */
 function debounce(func, wait, immediate) {
-  let timeout
+  let timeout;
 
   return function() {
-    var context = this, args = arguments
-    const later = function() {
-      timeout = null
-      if (!immediate) func.apply(context, args)
+    var context = this, args = arguments;
+    function later() {
+      timeout = null;
+      if (!immediate) func.apply(context, args);
     }
-    const callNow = immediate && !timeout
-    clearTimeout(timeout)
-    timeout = setTimeout(later, wait)
-    if (callNow) func.apply(context, args)
-  }
+    const callNow = immediate && !timeout;
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+    if (callNow) func.apply(context, args);
+  };
 }
 
 export const TypeaheadEntry = (value, label, additionalInfos) => {
-  return R.merge({ 'label': label, 'value': value}, additionalInfos || {})
-}
+  return R.merge({ 'label': label, 'value': value}, additionalInfos || {});
+};
 
 
 const initialState = () => {
   return {
     isOpen: false
-  }
-}
+  };
+};
 
 export let Autocomplete = onClickOutside(React.createClass({
 
   //Required with onClickOutside wrapper
-  handleClickOutside: function(event) {
-    this.hide()
+  handleClickOutside() {
+    this.hide();
   },
 
-  componentWillMount: function() {
-   this.onChange = debounce(this.props.onChange, this.props.delay || 100)
+  componentWillMount() {
+    this.onChange = debounce(this.props.onChange, this.props.delay || 100);
   },
 
   getInitialState: initialState,
@@ -59,24 +59,24 @@ export let Autocomplete = onClickOutside(React.createClass({
     className: React.PropTypes.string
   },
 
-  onChange(value) {
-    this.props.onChange(event.target.value)
+  onChange() {
+    this.props.onChange(event.target.value);
   },
 
   onKeyUp(event) {
-    event.preventDefault()
+    event.preventDefault();
 
     // check if not special key do this
-    let enter = event.keyCode === 13
-    let arrowUp = event.keyCode === 38
-    let arrowDown = event.keyCode === 40
+    let enter = event.keyCode === 13;
+    let arrowUp = event.keyCode === 38;
+    let arrowDown = event.keyCode === 40;
 
-    if(!(enter || arrowUp || arrowDown)) this.onChange(event.target.value)
+    if(!(enter || arrowUp || arrowDown)) this.onChange(event.target.value);
   },
 
   handleSelect(entry, event) {
-    this.props.onSelect(entry)
-    this.hide()
+    this.props.onSelect(entry);
+    this.hide();
   },
 
   customClasses() {
@@ -86,23 +86,23 @@ export let Autocomplete = onClickOutside(React.createClass({
       listItem: "typeahead-list-item",
       listAnchor: "typeahead-list-anchor",
       hover: "typeahead-hover"
-    }
+    };
   },
 
   filterOption(inputValue, entry) {
-    return entry
+    return entry;
   },
 
   displayOption(entry, index) {
-    return entry.label
+    return entry.label;
   },
 
   display() {
-    this.setState({'isOpen': true})
+    this.setState({'isOpen': true});
   },
 
   hide() {
-    this.setState({'isOpen': false})
+    this.setState({'isOpen': false});
   },
 
   className() {
@@ -110,11 +110,11 @@ export let Autocomplete = onClickOutside(React.createClass({
       [(this.state.isOpen ? 'active ' : null), "autocomplete", this.props.className || null]
       .filter(c => c !== null)
       .join(' ')
-    )
+    );
   },
 
   focus() {
-    this.refs.typeahead.focus()
+    this.refs.typeahead.focus();
   },
 
   render() {
@@ -132,6 +132,6 @@ export let Autocomplete = onClickOutside(React.createClass({
           maxVisible={this.props.maxVisible || DEFAULT_NB_ENTRIES}
           placeholder={this.props.placeholder || 'type here'} />
       </div>
-    )
+    );
   }
-}))
+}));
