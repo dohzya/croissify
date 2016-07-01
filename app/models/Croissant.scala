@@ -28,6 +28,7 @@ object Status {
 }
 
 case class Croissant(
+  id: String,
   victimId: String,
   creationDate: DateTime,
   doneDate: Option[DateTime],
@@ -39,9 +40,13 @@ object Croissant extends Repository[Croissant] {
   val collectionName: String = "croissants"
   implicit val format: OFormat[Croissant] = Json.format[Croissant] //.asInstanceOf[OFormat[Croissant]]
 
+  def genId() = java.util.UUID.randomUUID.toString
+
   def add(userId: String)(implicit reactiveMongoApi: ReactiveMongoApi): Future[WriteResult] = {
-    val croissant = Croissant(userId, DateTime.now(), None, Status.Pending, Seq())
+    val croissant = Croissant(genId(), userId, DateTime.now(), None, Status.Pending, Seq())
     Croissant.save(croissant)
   }
+
+  def findById(id: String)(implicit reactiveMongoApi: ReactiveMongoApi) = findByOpt(Json.obj("id" -> id))
 
 }
