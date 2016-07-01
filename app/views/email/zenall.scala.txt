@@ -1,6 +1,6 @@
 @(
   victim: String,
-  message: String,
+  mbMessage: Option[String],
   zencroissantURL: String
 )()
 
@@ -15,8 +15,11 @@
   table.layout table {margin: 20px 0; width: 100%;} .valid {background-color: #50E3C2; } .error {background-color: #E35C4F; } </style>
   </head> <body> <table class="layout"> <tr> <td> <table class="title"> <tr> <td>Salut,</td> </tr> </table>
   <table> <tr> <td> Aujourd'hui @victim s'est fait avoir et devra payer ses croissants. </td> </tr> </table>
-  <table> <tr> <td> Petite Dédicace : @message </td> </tr> </table>
+  @mbMessage.map { message =>
+    <table> <tr> <td> Petite Dédicace : @message </td> </tr> </table>
+  }
   <table> <tr> <td> On aura besoin de toi pour savoir si il a bien tenu son engagement. </td> </tr> </table>
-  <table> <tr> <td class="btn valid"> <a href="@zencroissantURL">Aller sur Zencroissant</a> </td> </tr> </table> </td> </tr>
-  <table> <tr> <td> @email.footer() </td></tr></table></table>
+  <table> <tr> <td class="btn valid"> <a href="@zencroissantURL">Aller sur Zencroissant</a> </td> </tr> </table>
+  <table> <tr> <td> @email.footer() </td></tr> </table>
+  </td> </tr> </table>
 </body> </html>

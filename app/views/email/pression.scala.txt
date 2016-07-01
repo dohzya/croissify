@@ -16,4 +16,6 @@
  </style> </head> <body> <table class="layout"> <tr> <td> <table class="title"> <tr> <td>Salut @victim,
  </td> </tr> </table> <table> <tr> <td> Il semble que tu n’as toujours pas payé tes croissants et @user est
    là pour te le rappeler. </td> </tr> </table> <table> <tr> <td> Tu devrais te dépécher, la sentence pourrait doubler… </td>
- </tr> </table> </td> </tr> </table> <table class="info"> <tr> <td> @email.footer() </td> </tr> </table> </body> </html>"
+ </tr> </table>
+ <table class="info"> <tr> <td> @email.footer() </td> </tr> </table>
+ </td> </tr> </table>  </body> </html>"

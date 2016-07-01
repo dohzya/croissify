@@ -18,7 +18,8 @@ table.layout table {margin: 20px 0; width: 100%;} .valid {background-color: #50E
 <td>Salut @user,</td> </tr> </table> <table> <tr> <td> Aujourd'hui c'était à @victim de payer ses croissants. </td> </tr>
 </table> <table> <tr> <td> On a besoin de savoir s'il a bien tenu son engagement. </td> </tr> </table>
 <table> <tr> <td class="btn valid"> <a href="#">Je confirme il a payé</a> </td> </tr> </table>
-<table> <tr> <td class="btn error"> <a href="#">Sentence, il s'est débiné !</a> </td> </tr> </table> </td> </tr> </table>
+<table> <tr> <td class="btn error"> <a href="#">Sentence, il s'est débiné !</a> </td> </tr> </table>
 <table> <tr> <td> @email.footer() </td> </tr> </table>
+</td> </tr> </table>
 </body>
 </html>
