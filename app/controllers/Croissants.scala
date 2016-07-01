@@ -63,7 +63,6 @@ class Croissants @Inject()(
     .get()
     .map(resp =>
       (resp.json \ "messages" \\ "id" )
-
     )
 
     def msg(id: String) = ws.url(s"https://www.googleapis.com/gmail/v1/users/me/messages/$id")
@@ -86,19 +85,19 @@ class Croissants @Inject()(
       for {
         idList <- idListFut
         msgList <- Future.traverse(idList){
-                    id => msg(id.asOpt[String].getOrElse(""))
-                      .flatMap{ _ =>
-                        update(id)
-                        id
-                      }
-                  }
+          id => msg(id.asOpt[String].getOrElse(""))
+            .flatMap{ _ =>
+              update(id)
+              id
+            }
+        }
       } yield msgList
     ).map{
       msgList => Ok("New Messages: " + msgList)
     }
   }
 
-  private def getUserIdFromEmail(email: String): Option[String] = {
+  private def getUserIdFromEmail(emviews.txt.email.victim(victimName)ail: String): Option[String] = {
     val domains = config.Croissants.includedDomains
     val excludedEmails = config.Croissants.excludedEmails
 
