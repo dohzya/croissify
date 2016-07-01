@@ -43,11 +43,17 @@ class Croissants @Inject()(
         case (from, subject, config.Api.secret) =>
           val email = from.trim
           getUserIdFromEmail(email) match {
-            case Some(victimId)  =>
+            case Some(victimId) =>
               Logger.debug(s"New croissants for : $email")
+              val mbMessage: Option[String] =
+                if(subject == null) {
+                  Some(subject)
+                }else{
+                  None
+                }
               Croissant.add(victimId).map { _ =>
                 mailer.victim(victimId, email)
-                mailer.all(victimId, subject, config.Ui.host)
+                mailer.all(victimId, mbMessage, config.Ui.host)
                 Ok
               }
             case None =>
