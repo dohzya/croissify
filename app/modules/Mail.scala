@@ -7,7 +7,6 @@ import java.io.File
 
 import common.Config
 import org.apache.commons.mail.EmailAttachment
-import modules.mail.templates._
 
 class Mail @Inject() (config: Config, mailerClient: MailerClient) {
 
@@ -68,7 +67,7 @@ class Mail @Inject() (config: Config, mailerClient: MailerClient) {
   def send(email: Email) = {
     if(config.Mail.mock) {
       println(email)
-      mailerClient.send(email)
     }
+    mailerClient.send(email)
   }
 }
