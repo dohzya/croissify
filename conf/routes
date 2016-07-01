@@ -5,5 +5,7 @@
 GET     /                           controllers.Croissants.index
 POST    /api/croissants             controllers.Croissants.newCroissant
 
+GET     /test                       controllers.Croissants.gmailMails
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

@@ -12,6 +12,7 @@ import play.api.mvc.{Action, Controller}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.modules.reactivemongo.ReactiveMongoApi
+import play.api.libs.ws._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -19,7 +20,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class Croissants @Inject()(
   val messagesApi: MessagesApi,
   val config: Config,
-  val mailer : Mail)
+  val mailer : Mail,
+  val ws: WSClient)
   (implicit reactiveMongoApi: ReactiveMongoApi, ec: ExecutionContext) extends Controller with I18nSupport {
 
   val newCroissantsForm = Form(tuple("from" -> email, "subject" -> text, "secret" -> nonEmptyText))
@@ -49,6 +51,50 @@ class Croissants @Inject()(
   def index = Action.async {
     Croissant.list.map { list =>
       Ok(views.html.index(list))
+    }
+  }
+
+  def gmailMails = Action.async { implicit request =>
+    val idListFut = ws.url("https://www.googleapis.com/gmail/v1/users/me/messages")
+    .withQueryString("q" -> "is:unread")
+    .withHeaders(
+      "Authorization" -> "Bearer ya29.Ci8SA2625pcE-3TrHfrfaeMyUOBiPwjNPx1n9TRbGsBS-DspSxy3yZ1f5zQnIGfekw"
+    )
+    .get()
+    .map(resp =>
+      (resp.json \ "messages" \\ "id" )
+
+    )
+
+    def msg(id: String) = ws.url(s"https://www.googleapis.com/gmail/v1/users/me/messages/$id")
+    .withHeaders(
+      "Authorization" -> "Bearer ya29.Ci8SA2625pcE-3TrHfrfaeMyUOBiPwjNPx1n9TRbGsBS-DspSxy3yZ1f5zQnIGfekw"
+    ).get()
+    .map(_.json)
+
+    def update(id: String) = ws.url(s"https://www.googleapis.com/gmail/v1/users/me/messages/$id/modify")
+    .withHeaders(
+      "Authorization" -> "Bearer ya29.Ci8SA2625pcE-3TrHfrfaeMyUOBiPwjNPx1n9TRbGsBS-DspSxy3yZ1f5zQnIGfekw"
+    ).setContentType("application/json")
+    .post(
+      """{
+        "removeLabelId" : "UNREAD"
+      }"""
+    )
+
+    (
+      for {
+        idList <- idListFut
+        msgList <- Future.traverse(idList){
+                    id => msg(id.asOpt[String].getOrElse(""))
+                      .flatMap{ _ =>
+                        update(id)
+                        id
+                      }
+                  }
+      } yield msgList
+    ).map{
+      msgList => Ok("New Messages: " + msgList)
     }
   }
 
