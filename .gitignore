@@ -15,4 +15,6 @@ server.pid
 .cache
 project/project
 node_modules/
-compiled/
+npm-debug.log
+.DS_Store
+.idea

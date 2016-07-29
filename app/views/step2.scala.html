@@ -24,7 +24,7 @@
         var croissants = @Html(Json.toJson(croissants).toString);
         console.log(croissants)
 
-        function toto(date) {
+        function disableTakenDays(date) {
             var currentDate = moment(date).format('X');
             console.log(currentDate)
             var isDayTaken = R.find(function(croissant) {
@@ -41,10 +41,9 @@
         var picker = new Pikaday({
             disableWeekends: true,
             numberOfMonths: 2,
-            format: moment().format('X'),
             minDate: moment().add(1, 'day').toDate(),
             maxDate: moment().add(2, 'month').toDate(),
-            disableDayFn: toto,
+            disableDayFn: disableTakenDays,
             onSelect: function(date) {
                 console.log("date"+date)
                 field.value = date.getTime();
