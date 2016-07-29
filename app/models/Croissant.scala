@@ -38,7 +38,8 @@ case class Croissant(
   creationDate: DateTime,
   doneDate: Option[DateTime],
   status: Status,
-  voters: Seq[String]
+  voters: Seq[String],
+  email: String
 ) {
   def isDone = doneDate.isDefined
 }
@@ -52,8 +53,8 @@ object Croissant extends Repository[Croissant] {
 
   def genId() = java.util.UUID.randomUUID.toString
 
-  def add(userId: String)(implicit reactiveMongoApi: ReactiveMongoApi): Future[WriteResult] = {
-    val croissant = Croissant(genId(), userId, DateTime.now(), None, Status.Pending, Seq())
+  def add(userId: String, email: String)(implicit reactiveMongoApi: ReactiveMongoApi): Future[WriteResult] = {
+    val croissant = Croissant(genId(), userId, DateTime.now(), None, Status.Pending, Nil, email)
     logger.info(s"Add croissant ${croissant.id}($userId)")
     Croissant.save(croissant)
   }
@@ -68,7 +69,7 @@ object Croissant extends Repository[Croissant] {
           }else{
             None
           }
-        Croissant.add(victimId).map { _ =>
+        Croissant.add(victimId, email).map { _ =>
           mailer.victim(victimId, email)
           mailer.all(victimId, mbMessage, config.Ui.host)
           ()
