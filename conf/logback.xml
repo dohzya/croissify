@@ -41,6 +41,7 @@
   <logger name="javax.mail" level="WARN" />
   <logger name="org.asynchttpclient.netty" level="WARN" />
   <logger name="reactivemongo.api.Failover2" level="WARN" />
+  <logger name="reactivemongo.core.actors" level="WARN" />
   <logger name="shaded.netty" level="WARN" />
 
   <root level="DEBUG">
