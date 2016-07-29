@@ -52,7 +52,9 @@ object Croissant extends Repository[Croissant] {
       "id" -> id
     )
     update(query, Json.obj(
-      "doneDate" -> date
+      "$set" -> Json.obj(
+        "doneDate" -> date
+      )
     ))
   }
 

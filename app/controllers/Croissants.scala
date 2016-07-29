@@ -115,7 +115,7 @@ class Croissants @Inject()(
         val victimId = getUserIdFromEmail(request.email)
         Croissant.findById(id).flatMap {
           case Some(croissant) if victimId.isDefined && croissant.victimId == victimId.get =>
-            Croissant.chooseDate(id, date).map { result =>
+            Croissant.chooseDate(id, new DateTime(date)).map { result =>
               Ok(views.html.step3(victimId.get))
             }
           case Some(croissant) =>
