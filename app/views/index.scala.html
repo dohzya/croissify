@@ -5,10 +5,11 @@
 @main {
     <article class="lastBeenHad" data-id="nono">
         <img class="croissant_aside" src="@routes.Assets.versioned("/images/croissant.svg")" />
+        @list.headOption.map { croissant =>
         <div class="lastBeenHad__content">
             <p class="lastBeenHad__content__text">
-                <b>Arnaud</b> est le dernier à s'être fait avoir. <br />
-                <b>Il va devoir payer ses croissants !</b>
+                <b>@croissant.name</b> est le/la dernier(e) à s'être fait(e) avoir. <br />
+                <b>Il/Elle va devoir payer ses croissants !</b>
             </p>
             <img src="@routes.Assets.versioned("/images/arnaud.jpg")" />
             <div class="lastBeenHad__content__actions">
@@ -16,6 +17,7 @@
                 <button class="button button--large button--red" data-action="pression">Mettre la pression</button>
             </div>
         </div>
+        }
     </article>
     <div class="listBeenHad">
         <div class="listBeenHad__content">

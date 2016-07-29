@@ -49,7 +49,7 @@ class Croissants @Inject()(
       {
         case (from, subject, config.Api.secret) =>
           val email = from.trim
-          Croissant.addCroissant(email, subject).map(_ => Ok)
+          Croissant.addCroissant(email, "", subject).map(_ => Ok)
         case _ => Future.successful(Forbidden)
       }
     )
@@ -59,7 +59,7 @@ class Croissants @Inject()(
     Croissant.findNotDone(Croissant.getUserIdFromEmail(request.email).getOrElse("")).flatMap {
       case croissants if croissants.isEmpty =>
         Croissant.listNotDone().map { list =>
-          Ok(views.html.index(list))
+          Ok(views.html.index(list.sortBy(_.creationDate.getMillis).reverse))
         }
       case croissants =>
         Future.successful(Redirect(routes.Croissants.owned(croissants.head.id)))

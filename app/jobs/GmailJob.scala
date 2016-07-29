@@ -69,7 +69,7 @@ class GmailJob @Inject()(
 
               if (headerValid) {
                 val subject = message.payload.headers.collect { case Header("Subject", value) => value }.headOption
-                Croissant.addCroissant(email, subject)
+                Croissant.addCroissant(email, name, subject)
               } else {
                 logger.warn(s"Received invalid email with headers: ${message.payload.headers}")
               }

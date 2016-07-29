@@ -10,7 +10,6 @@ import modules.mail.Mail
 import play.api.Logger
 import utils.Repository
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -40,7 +39,8 @@ case class Croissant(
   scheduleDate: Option[DateTime],
   status: Status,
   voters: Seq[String],
-  email: String
+  email: String,
+  name: String
 ) {
   def isDone = doneDate.isDefined
 }
@@ -54,17 +54,17 @@ object Croissant extends Repository[Croissant] {
 
   def genId() = java.util.UUID.randomUUID.toString
 
-  def add(userId: String, email: String)(implicit reactiveMongoApi: ReactiveMongoApi): Future[WriteResult] = {
-    val croissant = Croissant(genId(), userId, DateTime.now(), None, None, Status.Pending, Nil, email)
+  def add(userId: String, email: String, name: String)(implicit reactiveMongoApi: ReactiveMongoApi): Future[WriteResult] = {
+    val croissant = Croissant(genId(), userId, DateTime.now(), None, None, Status.Pending, Nil, email, name)
     logger.info(s"Add croissant ${croissant.id}($userId)")
     Croissant.save(croissant)
   }
 
-  def addCroissant(email: String, subject: Option[String])(implicit config: Config, mailer: Mail, reactiveMongoApi: ReactiveMongoApi): Future[Unit] = {
+  def addCroissant(email: String, name: String, subject: Option[String])(implicit config: Config, mailer: Mail, reactiveMongoApi: ReactiveMongoApi): Future[Unit] = {
     getUserIdFromEmail(email) match {
       case Some(victimId) =>
         Logger.debug(s"New croissants for : $email")
-        Croissant.add(victimId, email).map { _ =>
+        Croissant.add(victimId, email, name).map { _ =>
           mailer.victim(victimId, email)
           mailer.all(victimId, subject, config.Ui.host)
           ()
