@@ -59,19 +59,13 @@ object Croissant extends Repository[Croissant] {
     Croissant.save(croissant)
   }
 
-  def addCroissant(email: String, subject: String)(implicit config: Config, mailer: Mail, reactiveMongoApi: ReactiveMongoApi): Future[Unit] = {
+  def addCroissant(email: String, subject: Option[String])(implicit config: Config, mailer: Mail, reactiveMongoApi: ReactiveMongoApi): Future[Unit] = {
     getUserIdFromEmail(email) match {
       case Some(victimId) =>
         Logger.debug(s"New croissants for : $email")
-        val mbMessage: Option[String] =
-          if(subject == null) {
-            Some(subject)
-          }else{
-            None
-          }
         Croissant.add(victimId, email).map { _ =>
           mailer.victim(victimId, email)
-          mailer.all(victimId, mbMessage, config.Ui.host)
+          mailer.all(victimId, subject, config.Ui.host)
           ()
         }
       case None =>

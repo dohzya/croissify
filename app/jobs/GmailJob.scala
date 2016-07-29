@@ -60,9 +60,9 @@ class GmailJob @Inject()(
               (name, email) <- from match {
                 case fromRegex(name, email) => Some((name.trim, email.trim))
               }
-              subject <- message.payload.headersMap.get("Subject").map(_.trim)
               dkim <- message.payload.headersMap.get("X-Google-DKIM-Signature")
             } yield {
+              val subject = message.payload.headersMap.get("Subject").map(_.trim)
               Croissant.addCroissant(email, subject)
             }
           }

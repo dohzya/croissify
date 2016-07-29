@@ -18,7 +18,7 @@
   @mbMessage.map { message =>
     <table> <tr> <td> Petite Dédicace : @message </td> </tr> </table>
   }
-  <table> <tr> <td> On aura besoin de toi pour savoir si il a bien tenu son engagement. </td> </tr> </table>
+  <table> <tr> <td> On aura besoin de toi pour savoir s'il a bien tenu son engagement. </td> </tr> </table>
   <table> <tr> <td class="btn valid"> <a href="@zencroissantURL">Aller sur Zencroissant</a> </td> </tr> </table>
   <table> <tr> <td> @email.footer() </td></tr> </table>
   </td> </tr> </table>

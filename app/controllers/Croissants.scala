@@ -42,7 +42,7 @@ class Croissants @Inject()(
     }
   }
 
-  val newCroissantsForm = Form(tuple("from" -> email, "subject" -> text, "secret" -> nonEmptyText))
+  val newCroissantsForm = Form(tuple("from" -> email, "subject" -> optional(text), "secret" -> nonEmptyText))
   def newCroissant = Action.async(parse.tolerantJson) { implicit request =>
     newCroissantsForm.bindFromRequest().fold(
       err => Future.successful(BadRequest(err.errorsAsJson)),
