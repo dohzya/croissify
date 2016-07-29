@@ -12,7 +12,7 @@ import play.api.mvc.{Action, ActionBuilder, Controller, Request, Result, Wrapped
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.modules.reactivemongo.ReactiveMongoApi
-import org.joda.time.DateTime
+import org.joda.time._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -62,7 +62,6 @@ class Croissants @Inject()(
           Ok(views.html.index(list))
         }
       case croissants =>
-        println(Console.RED + croissants)
         Future.successful(Redirect(routes.Croissants.owned(croissants.head.id)))
     }
   }
@@ -72,8 +71,13 @@ class Croissants @Inject()(
     Croissant.findById(id).map {
       case Some(croissant) if victimId.isDefined && croissant.victimId == victimId.get =>
         Ok(views.html.step1(victimId.get, croissant))
-      case Some(croissant) =>
-        Unauthorized(Json.obj("error" -> "Unauthorized"))
+      case Some(croissant) => {
+        Unauthorized(Json.obj(
+          "error" -> "Unauthorized",
+          "croissant" -> croissant.victimId,
+          "victim" -> victimId
+        ))
+      }
       case None =>
         NotFound(Json.obj("error" -> "Croissant not found :-("))
     }
@@ -81,18 +85,39 @@ class Croissants @Inject()(
 
   def schedule(id: String) = AuthenticatedAction.async { implicit request =>
     val victimId = Croissant.getUserIdFromEmail(request.email)
-    Croissant.findById(id).map {
+    Croissant.findById(id).flatMap {
       case Some(croissant) if victimId.isDefined && croissant.victimId == victimId.get =>
-        Ok(views.html.step2())
+        Croissant.findByDate.map { croissants =>
+          Ok(views.html.step2(croissants))
+        }
       case Some(croissant) =>
-        Unauthorized(Json.obj("error" -> "Unauthorized"))
+        Future.successful(Unauthorized(Json.obj("error" -> "Unauthorized")))
       case None =>
-        NotFound(Json.obj("error" -> "Croissant not found :-("))
+        Future.successful(NotFound(Json.obj("error" -> "Croissant not found :-(")))
     }
   }
 
-  def choose(date: String) = AuthenticatedAction.async { implicit request =>
-    Future.successful(Ok)
+  val chooseForm = Form(
+    "date" -> jodaDate("yyyy-MM-dd")
+  )
+  def choose(id: String) = AuthenticatedAction.async { implicit request =>
+    chooseForm.bindFromRequest.fold(
+      formWithErrors => {
+        Future.successful(BadRequest(formWithErrors.errorsAsJson))
+      }, { case date =>
+        val victimId = getUserIdFromEmail(request.email)
+        Croissant.findById(id).flatMap {
+          case Some(croissant) if victimId.isDefined && croissant.victimId == victimId.get =>
+            Croissant.chooseDate(id, date).map { result =>
+              Ok(views.html.step3(victimId.get))
+            }
+          case Some(croissant) =>
+            Future.successful(Unauthorized(Json.obj("error" -> "Unauthorized")))
+          case None =>
+            Future.successful(NotFound(Json.obj("error" -> "Croissant not found :-(")))
+        }
+      }
+    )
   }
 
   def confirm(id: String) = AuthenticatedAction.async { implicit request =>
@@ -117,6 +142,17 @@ class Croissants @Inject()(
         mailer.pression(croissant.victimId, request.trigram, croissant.email)
         Ok(Json.obj("success" -> "Pression on croissant FIRED"))
       case None => NotFound(Json.obj("error" -> "Croissant not found :-("))
+    }
+  }
+
+  private def getUserIdFromEmail(email: String): Option[String] = {
+    val domains = config.Croissants.includedDomains
+    val excludedEmails = config.Croissants.excludedEmails
+
+    if (domains.exists(domain => email.endsWith(domain)) && !excludedEmails.contains(email)) {
+      Some(email.split("@")(0))
+    } else {
+      None
     }
   }
 
