@@ -38,7 +38,7 @@ class GmailJob @Inject()(
   val clientSecret = config.Gmail.clientSecret
 
   val fromRegex = "(.*)<(.*)>".r
-  val receivedFromRegex = "from +.*.\\(google|gmail\\).com\\b".r
+  val receivedFromRegex = "from +.*.(google|gmail).com\\b".r
 
   def schedule(accessToken: Option[AccessToken]): Unit = {
     system.scheduler.scheduleOnce(5 seconds) {
