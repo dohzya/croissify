@@ -27,15 +27,21 @@
                         <p class="listBeenHad__content__item__person__name">
                             <b>@item.victimId</b>
                         </p>
+
                         <p class="listBeenHad__content__item__person__howlong">
                             @defining(new Period(item.creationDate.getMillis, DateTime.now.getMillis).getDays) { days =>
                                 Il les doit depuis déjà @days jours. (@item.voters.size votes)
                             }
                         </p>
+                        @item.scheduleDate.map { scheduleDate =>
+                            <p>Il compte les apporter le @{org.joda.time.format.DateTimeFormat.forPattern("dd MMMM yyyy").print(scheduleDate)}</p>
+                        }
                     </div>
                     <div class="listBeenHad__content__item__actions">
                         <button class="button button--large button--green" data-action="confirm">Je confirme, il a payé</button>
-                        <button class="button button--large button--red" data-action="pression">Mettre la pression</button>
+                        @if(item.scheduleDate.isEmpty) {
+                            <button class="button button--large button--red" data-action="pression">Mettre la pression</button>
+                        }
                     </div>
                 </article>
             }
