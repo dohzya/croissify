@@ -6,11 +6,11 @@ import common.Config
 import jobs.GmailJob
 import models.Croissant
 import modules.mail.Mail
-import play.api.Logger
 import play.api.data._
 import play.api.data.Forms._
 import play.api.mvc.{Action, ActionBuilder, Controller, Request, Result, WrappedRequest}
 import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.libs.json.Json
 import play.modules.reactivemongo.ReactiveMongoApi
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -18,10 +18,12 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class Croissants @Inject()(
   val messagesApi: MessagesApi,
+  val gmailJob: GmailJob
+)(implicit
+  val reactiveMongoApi: ReactiveMongoApi,
   val config: Config,
   val mailer: Mail,
-  val gmailJob: GmailJob)
-  (implicit reactiveMongoApi: ReactiveMongoApi, ec: ExecutionContext) extends Controller with I18nSupport {
+  ec: ExecutionContext) extends Controller with I18nSupport {
 
   gmailJob.schedule(None)
 
@@ -45,24 +47,7 @@ class Croissants @Inject()(
       {
         case (from, subject, config.Api.secret) =>
           val email = from.trim
-          getUserIdFromEmail(email) match {
-            case Some(victimId) =>
-              Logger.debug(s"New croissants for : $email")
-              val mbMessage: Option[String] =
-                if(subject == null) {
-                  Some(subject)
-                }else{
-                  None
-                }
-              Croissant.add(victimId).map { _ =>
-                mailer.victim(victimId, email)
-                mailer.all(victimId, mbMessage, config.Ui.host)
-                Ok
-              }
-            case None =>
-              Logger.debug(s"Mail ignored from : $email")
-              Future.successful(Ok)
-          }
+          Croissant.addCroissant(email, subject).map(_ => Ok)
         case _ => Future.successful(Forbidden)
       }
     )
@@ -91,17 +76,6 @@ class Croissants @Inject()(
         // Croissant.pression(id)
         Ok(Json.obj("success" -> "Pression on croissant FIRED"))
       case None => NotFound(Json.obj("error" -> "Croissant not found :-("))
-    }
-  }
-
-  private def getUserIdFromEmail(email: String): Option[String] = {
-    val domains = config.Croissants.includedDomains
-    val excludedEmails = config.Croissants.excludedEmails
-
-    if (domains.exists(domain => email.endsWith(domain)) && !excludedEmails.contains(email)) {
-      Some(email.split("@")(0))
-    } else {
-      None
     }
   }
 
