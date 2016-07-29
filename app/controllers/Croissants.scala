@@ -135,12 +135,22 @@ class Croissants @Inject()(
     }
   }
 
+  val pressionFired = scala.collection.concurrent.TrieMap.empty[(String, String), DateTime]
   def pression(id: String) = AuthenticatedAction.async { request =>
     Croissant.findById(id).map {
       case Some(croissant) =>
-        play.api.Logger.info(s"Make pression on $id by ${request.trigram}")
-        mailer.pression(croissant.victimId, request.trigram, croissant.email)
-        Ok(Json.obj("success" -> "Pression on croissant FIRED"))
+        val key = (croissant.id, request.trigram)
+        val now = DateTime.now
+        pressionFired.get(key) match {
+          case Some(date) if (now.getMillis - date.getMillis) < 1000*3600*24 =>
+            play.api.Logger.debug(s"Not making pression on $id by ${request.trigram}")
+            BadRequest(Json.obj("error" -> "Wait a bit before 2 pression sessions"))
+          case _ =>
+            play.api.Logger.info(s"Make pression on $id by ${request.trigram}")
+            mailer.pression(croissant.victimId, request.trigram, croissant.email)
+            pressionFired += (key -> now)
+            Ok(Json.obj("success" -> "Pression on croissant FIRED"))
+        }
       case None => NotFound(Json.obj("error" -> "Croissant not found :-("))
     }
   }
