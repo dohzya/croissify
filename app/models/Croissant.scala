@@ -69,19 +69,14 @@ object Croissant extends Repository[Croissant] {
     ))
   }
 
-  def findByDate(date: DateTime)(implicit reactiveMongoApi: ReactiveMongoApi) = {
-    val beginDate = date.dayOfMonth().withMinimumValue()
+  def findByDate(implicit reactiveMongoApi: ReactiveMongoApi) = {
+    val beginDate = DateTime.now.dayOfMonth().withMinimumValue()
                       .hourOfDay().withMinimumValue()
                       .minuteOfHour().withMinimumValue()
                       .secondOfMinute().withMinimumValue()
-    val endDate = date.dayOfMonth().withMaximumValue()
-                      .hourOfDay().withMaximumValue()
-                      .minuteOfHour().withMaximumValue()
-                      .secondOfMinute().withMaximumValue()
     val query = Json.obj(
       "doneDate" -> Json.obj(
-        "$gte" -> beginDate,
-        "$lt" -> endDate
+        "$gte" -> beginDate
       ),
       "doneDate" -> Json.obj(
         "$exists" -> true

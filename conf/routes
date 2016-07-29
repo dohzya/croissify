@@ -10,8 +10,7 @@ POST    /api/actions/pression       controllers.Croissants.pression(id)
 
 GET     /schedule/owned/:id         controllers.Croissants.owned(id)
 POST    /schedule/choose/:id        controllers.Croissants.choose(id)
-GET     /schedule/:id               controllers.Croissants.schedule(id, timestamp: Long = org.joda.time.DateTime.now.getMillis)
-GET     /schedule/:id/:timestamp    controllers.Croissants.schedule(id, timestamp: Long)
+GET     /schedule/:id               controllers.Croissants.schedule(id)
 
 GET     /login                     controllers.Oauth.login(url)
 GET     /logout                    controllers.Oauth.logout(url: String ?= "/")

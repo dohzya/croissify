@@ -12,7 +12,7 @@ import play.api.mvc.{Action, ActionBuilder, Controller, Request, Result, Wrapped
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.modules.reactivemongo.ReactiveMongoApi
-import org.joda.time.DateTime
+import org.joda.time._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -89,13 +89,12 @@ class Croissants @Inject()(
     }
   }
 
-  def schedule(id: String, timestamp: Long) = AuthenticatedAction.async { implicit request =>
+  def schedule(id: String) = AuthenticatedAction.async { implicit request =>
     val victimId = getUserIdFromEmail(request.email)
-    val date = new DateTime(timestamp)
     Croissant.findById(id).flatMap {
       case Some(croissant) if victimId.isDefined && croissant.victimId == victimId.get =>
-        Croissant.findByDate(date).map { croissants =>
-          Ok(views.html.step2(croissants, date))
+        Croissant.findByDate.map { croissants =>
+          Ok(views.html.step2(croissants))
         }
       case Some(croissant) =>
         Future.successful(Unauthorized(Json.obj("error" -> "Unauthorized")))
