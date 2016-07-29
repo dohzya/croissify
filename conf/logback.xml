@@ -39,7 +39,6 @@
   <logger name="io.netty.buffer" level="WARN" />
   <logger name="javax.activation" level="WARN" />
   <logger name="javax.mail" level="WARN" />
-  <logger name="javax.mail" level="WARN" />
   <logger name="org.asynchttpclient.netty" level="WARN" />
   <logger name="reactivemongo.api.Failover2" level="WARN" />
   <logger name="shaded.netty" level="WARN" />
