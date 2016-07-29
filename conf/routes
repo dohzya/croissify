@@ -3,10 +3,14 @@
 # ~~~~
 
 GET     /                           controllers.Croissants.index
-POST    /api/croissants             controllers.Croissants.newCroissant
 
+POST    /api/croissants             controllers.Croissants.newCroissant
 POST    /api/actions/confirm        controllers.Croissants.confirm(id)
 POST    /api/actions/pression       controllers.Croissants.pression(id)
+
+GET     /schedule/:id               controllers.Croissants.schedule(id)
+POST    /schedule/choose/:date      controllers.Croissants.choose(date)
+GET     /schedule/owned/:id         controllers.Croissants.owned(id)
 
 GET     /login                     controllers.Oauth.login(url)
 GET     /logout                    controllers.Oauth.logout(url: String ?= "/")

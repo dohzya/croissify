@@ -42,12 +42,14 @@ case class Croissant(
 
 object Croissant extends Repository[Croissant] {
   val collectionName: String = "croissants"
+  val logger = play.api.Logger("croissant")
   implicit val format: OFormat[Croissant] = Json.format[Croissant] //.asInstanceOf[OFormat[Croissant]]
 
   def genId() = java.util.UUID.randomUUID.toString
 
   def add(userId: String)(implicit reactiveMongoApi: ReactiveMongoApi): Future[WriteResult] = {
     val croissant = Croissant(genId(), userId, DateTime.now(), None, Status.Pending, Seq())
+    logger.info(s"Add croissant ${croissant.id}($userId)")
     Croissant.save(croissant)
   }
 
@@ -73,7 +75,24 @@ object Croissant extends Repository[Croissant] {
 
   def findById(id: String)(implicit reactiveMongoApi: ReactiveMongoApi) = findByOpt(Json.obj("id" -> id))
 
-  private def getUserIdFromEmail(email: String)(implicit config: Config): Option[String] = {
+  def vote(croissant: Croissant, from: String)(implicit reactiveMongoApi: ReactiveMongoApi) = {
+    logger.info(s"User $from voted for croissant ${croissant.id}(${croissant.victimId})")
+    update(
+      Json.obj("id" -> croissant.id),
+      Json.obj("$addToSet" -> Json.obj("voters" -> from))
+    )
+  }
+
+  def findNotDone(victimId: String)(implicit reactiveMongoApi: ReactiveMongoApi) = {
+    findByOpt(Json.obj(
+      "victimId" -> victimId,
+      "doneDate" -> Json.obj(
+        "$exists" -> false
+      )
+    ))
+  }
+
+  def getUserIdFromEmail(email: String)(implicit config: Config): Option[String] = {
     val domains = config.Croissants.includedDomains
     val excludedEmails = config.Croissants.excludedEmails
 

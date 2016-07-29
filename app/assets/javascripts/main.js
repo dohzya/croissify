@@ -1,21 +1,28 @@
 (function (document) {
 
+  function ajaxError(req) {
+    try {
+      const err = JSON.parse(req.response);
+      return err
+    } catch (e) {}
+    return {error: 'error while sending HTTP request'};
+  }
+
   function ajaxPOST(url, cb) {
     const req = new XMLHttpRequest();
     req.open('POST', url, true);
     req.onreadystatechange = () => {
       if (req.readyState == 4) {
         if (req.status == 200) cb();
-        else cb('error while sending HTTP request');
+        else cb(ajaxError(req));
       }
     };
     req.send(null);
   }
 
   function runAction(action, id) {
-    console.log('run action', action, 'with id', id);
     ajaxPOST('/api/actions/' + action + '?id=' + id, (err) => {
-      if (err) console.error('Error while sending action');
+      if (err) console.error('Error while sending action:', err.error);
     });
   }
 
