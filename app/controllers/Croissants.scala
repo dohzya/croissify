@@ -116,7 +116,7 @@ class Croissants @Inject()(
         Croissant.findById(id).flatMap {
           case Some(croissant) if victimId.isDefined && croissant.victimId == victimId.get =>
             Croissant.chooseDate(id, date).map { result =>
-              Ok(views.html.step3(victimId, result))
+              Ok(views.html.step3(victimId.get))
             }
           case Some(croissant) =>
             Future.successful(Unauthorized(Json.obj("error" -> "Unauthorized")))
