@@ -59,4 +59,13 @@ object Croissant extends Repository[Croissant] {
     )
   }
 
+  def findNotDone(victimId: String)(implicit reactiveMongoApi: ReactiveMongoApi) = {
+    findByOpt(Json.obj(
+      "victimId" -> victimId,
+      "doneDate" -> Json.obj(
+        "$exists" -> false
+      )
+    ))
+  }
+
 }
