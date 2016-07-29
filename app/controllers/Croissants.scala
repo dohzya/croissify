@@ -12,6 +12,7 @@ import play.api.mvc.{Action, ActionBuilder, Controller, Request, Result, Wrapped
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.modules.reactivemongo.ReactiveMongoApi
+import org.joda.time.DateTime
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -65,17 +66,47 @@ class Croissants @Inject()(
     )
   }
 
-  def index = AuthenticatedAction.async {
-    Croissant.list.map { list =>
-      Ok(views.html.index(list))
+  def index = AuthenticatedAction.async { implicit request =>
+    Croissant.findNotDone(getUserIdFromEmail(request.email).getOrElse("")).flatMap {
+      case croissants if croissants.isEmpty =>
+        Croissant.list.map { list =>
+          Ok(views.html.index(list))
+        }
+      case croissants =>
+        println(Console.RED + croissants)
+        Future.successful(Redirect(routes.Croissants.owned(croissants.head.id)))
     }
   }
 
-  def step1 = AuthenticatedAction { request =>
-    Ok(views.html.step1(request.trigram))
+  def owned(id: String) = AuthenticatedAction.async { implicit request =>
+    val victimId = getUserIdFromEmail(request.email)
+    Croissant.findById(id).map {
+      case Some(croissant) if victimId.isDefined && croissant.victimId == victimId.get =>
+        Ok(views.html.step1(victimId.get, croissant))
+      case Some(croissant) =>
+        Unauthorized(Json.obj("error" -> "Unauthorized"))
+      case None =>
+        NotFound(Json.obj("error" -> "Croissant not found :-("))
+    }
   }
 
-  def confirm(id: String) = AuthenticatedAction.async { request =>
+  def schedule(id: String) = AuthenticatedAction.async { implicit request =>
+    val victimId = getUserIdFromEmail(request.email)
+    Croissant.findById(id).map {
+      case Some(croissant) if victimId.isDefined && croissant.victimId == victimId.get =>
+        Ok(views.html.step2())
+      case Some(croissant) =>
+        Unauthorized(Json.obj("error" -> "Unauthorized"))
+      case None =>
+        NotFound(Json.obj("error" -> "Croissant not found :-("))
+    }
+  }
+
+  def choose(date: String) = AuthenticatedAction.async { implicit request =>
+    Future.successful(Ok)
+  }
+
+  def confirm(id: String) = AuthenticatedAction.async { implicit request =>
     Croissant.findById(id).map {
       case Some(croissant) =>
         println(s"Confirm $id by ${request.trigram}")

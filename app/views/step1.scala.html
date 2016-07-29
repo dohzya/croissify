@@ -1,4 +1,4 @@
-@(trigram: String)
+@(trigram: String, croissant: Croissant)
 
 @main {
     <article class="lastBeenHad">
@@ -9,7 +9,7 @@
                 <b>Tu vas devoir payer tes croissants !</b>
             </p>
             <div class="lastBeenHad__content__actions">
-                <a href="/step2" class="btn large green">Ok, je le mérite</a>
+                <a href="@routes.Croissants.schedule(croissant.id)" class="btn large green">Ok, je le mérite</a>
             </div>
         </div>
     </article>
