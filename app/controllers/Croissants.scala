@@ -113,8 +113,8 @@ class Croissants @Inject()(
   def pression(id: String) = AuthenticatedAction.async { request =>
     Croissant.findById(id).map {
       case Some(croissant) =>
-        println(s"Make pression on $id by ${request.trigram}")
-        // Croissant.pression(id)
+        play.api.Logger.info(s"Make pression on $id by ${request.trigram}")
+        mailer.victim(croissant.victimId, croissant.email)
         Ok(Json.obj("success" -> "Pression on croissant FIRED"))
       case None => NotFound(Json.obj("error" -> "Croissant not found :-("))
     }
