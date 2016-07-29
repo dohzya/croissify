@@ -3,8 +3,9 @@
 # ~~~~
 
 GET     /                           controllers.Croissants.index
-POST    /api/croissants             controllers.Croissants.newCroissant
+GET     /step1                      controllers.Croissants.step1
 
+POST    /api/croissants             controllers.Croissants.newCroissant
 POST    /api/actions/confirm        controllers.Croissants.confirm(id)
 POST    /api/actions/pression       controllers.Croissants.pression(id)
 

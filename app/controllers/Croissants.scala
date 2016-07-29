@@ -71,6 +71,10 @@ class Croissants @Inject()(
     }
   }
 
+  def step1 = AuthenticatedAction { request =>
+    Ok(views.html.step1(request.trigram))
+  }
+
   def confirm(id: String) = AuthenticatedAction.async { request =>
     Croissant.findById(id).map {
       case Some(croissant) =>
