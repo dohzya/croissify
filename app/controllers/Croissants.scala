@@ -78,12 +78,19 @@ class Croissants @Inject()(
   }
 
   def owned(id: String) = AuthenticatedAction.async { implicit request =>
+    println("toto", request.email)
     val victimId = getUserIdFromEmail(request.email)
+
     Croissant.findById(id).map {
       case Some(croissant) if victimId.isDefined && croissant.victimId == victimId.get =>
         Ok(views.html.step1(victimId.get, croissant))
-      case Some(croissant) =>
-        Unauthorized(Json.obj("error" -> "Unauthorized"))
+      case Some(croissant) => {
+        Unauthorized(Json.obj(
+          "error" -> "Unauthorized",
+          "croissant" -> croissant.victimId,
+          "victim" -> victimId
+        ))
+      }
       case None =>
         NotFound(Json.obj("error" -> "Croissant not found :-("))
     }
@@ -114,7 +121,7 @@ class Croissants @Inject()(
         val victimId = getUserIdFromEmail(request.email)
         Croissant.findById(id).flatMap {
           case Some(croissant) if victimId.isDefined && croissant.victimId == victimId.get =>
-            Croissant.chooseDate(id, new DateTime(date)).map { result =>
+            Croissant.chooseDate(id, date).map { result =>
               Ok(views.html.step3(victimId.get))
             }
           case Some(croissant) =>
@@ -150,11 +157,13 @@ class Croissants @Inject()(
     val domains = config.Croissants.includedDomains
     val excludedEmails = config.Croissants.excludedEmails
 
-    if (domains.exists(domain => email.endsWith(domain)) && !excludedEmails.contains(email)) {
-      Some(email.split("@")(0))
-    } else {
-      None
-    }
+    Some(email.split("@")(0))
+
+    // if (domains.exists(domain => email.endsWith(domain)) && !excludedEmails.contains(email)) {
+    //   Some(email.split("@")(0))
+    // } else {
+    //   None
+    // }
   }
 
 }
