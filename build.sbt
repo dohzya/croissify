@@ -1,4 +1,4 @@
-name := """zencroissants"""
+name := """croissify"""
 
 version := "1.0-SNAPSHOT"
 
