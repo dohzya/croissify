@@ -88,7 +88,7 @@ class Croissants @Inject()(
     Croissant.findById(id).flatMap {
       case Some(croissant) if victimId.isDefined && croissant.victimId == victimId.get =>
         Croissant.findByDate.map { croissants =>
-          Ok(views.html.step2(croissants))
+          Ok(views.html.step2(croissants, croissant))
         }
       case Some(croissant) =>
         Future.successful(Unauthorized(Json.obj("error" -> "Unauthorized")))
@@ -99,6 +99,11 @@ class Croissants @Inject()(
 
   val chooseForm = Form(
     "date" -> jodaDate("yyyy-MM-dd")
+      // .verifying("Invalid Date", date => date.hourOfDay().withMaximumValue()
+      //                                        .minuteOfHour().withMaximumValue()
+      //                                        .secondOfMinute().withMaximumValue().isAfterNow
+      //                                        && date.plus(Period.months(2)).isBeforeNow
+      //)
   )
   def choose(id: String) = AuthenticatedAction.async { implicit request =>
     chooseForm.bindFromRequest.fold(

@@ -37,6 +37,7 @@ case class Croissant(
   victimId: String,
   creationDate: DateTime,
   doneDate: Option[DateTime],
+  scheduleDate: Option[DateTime],
   status: Status,
   voters: Seq[String],
   email: String
@@ -54,7 +55,7 @@ object Croissant extends Repository[Croissant] {
   def genId() = java.util.UUID.randomUUID.toString
 
   def add(userId: String, email: String)(implicit reactiveMongoApi: ReactiveMongoApi): Future[WriteResult] = {
-    val croissant = Croissant(genId(), userId, DateTime.now(), None, Status.Pending, Nil, email)
+    val croissant = Croissant(genId(), userId, DateTime.now(), None, None, Status.Pending, Nil, email)
     logger.info(s"Add croissant ${croissant.id}($userId)")
     Croissant.save(croissant)
   }
@@ -79,7 +80,7 @@ object Croissant extends Repository[Croissant] {
     )
     update(query, Json.obj(
       "$set" -> Json.obj(
-        "doneDate" -> date
+        "scheduleDate" -> date
       )
     ))
   }
@@ -96,9 +97,9 @@ object Croissant extends Repository[Croissant] {
         update(
           Json.obj(
             "id" -> croissant.id,
-            "doneDate" -> Json.obj("$exists" -> false)
+            "scheduleDate" -> Json.obj("$exists" -> false)
           ),
-          Json.obj("$set" -> Json.obj("doneDate" -> DateTime.now))
+          Json.obj("$set" -> Json.obj("scheduleDate" -> DateTime.now))
         )
       }
       else Future.successful(())
@@ -116,7 +117,7 @@ object Croissant extends Repository[Croissant] {
   def findNotDone(victimId: String)(implicit reactiveMongoApi: ReactiveMongoApi) = {
     findByOpt(Json.obj(
       "victimId" -> victimId,
-      "doneDate" -> Json.obj(
+      "scheduleDate" -> Json.obj(
         "$exists" -> false
       )
     ))
