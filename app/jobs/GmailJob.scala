@@ -38,6 +38,7 @@ class GmailJob @Inject()(
   val clientSecret = config.Gmail.clientSecret
 
   val fromRegex = "(.*)<(.*)>".r
+  val receivedFromRegex = "from +.*.google.com +\\(".r
 
   def schedule(accessToken: Option[AccessToken]): Unit = {
     system.scheduler.scheduleOnce(5 seconds) {
@@ -56,14 +57,22 @@ class GmailJob @Inject()(
         case Success((accessToken, messages)) =>
           messages.foreach { message =>
             for {
-              from <- message.payload.headersMap.get("From")
+              from <- message.payload.headers.collect { case Header("From", value) => value }.headOption
               (name, email) <- from match {
                 case fromRegex(name, email) => Some((name.trim, email.trim))
               }
-              dkim <- message.payload.headersMap.get("X-Google-DKIM-Signature")
             } yield {
-              val subject = message.payload.headersMap.get("Subject").map(_.trim)
-              Croissant.addCroissant(email, subject)
+              val receivedFromHeaders = message.payload.headers.filter(header => header.name == "Received" && header.value.trim.startsWith("from"))
+              val headerValid = receivedFromHeaders.nonEmpty && receivedFromHeaders.forall { header =>
+                receivedFromRegex.findFirstIn(header.value).isDefined
+              }
+
+              if (headerValid) {
+                val subject = message.payload.headers.collect { case Header("Subject", value) => value }.headOption
+                Croissant.addCroissant(email, subject)
+              } else {
+                logger.warn(s"Received invalid email with headers: ${message.payload.headers}")
+              }
             }
           }
           schedule(Some(accessToken))
@@ -81,11 +90,7 @@ class GmailJob @Inject()(
   )
   case class Payload(
     headers: Seq[Header]
-  ) {
-    lazy val headersMap = headers.map { header =>
-      (header.name -> header.value)
-    }.toMap
-  }
+  )
   case class Header(
     name: String,
     value: String
