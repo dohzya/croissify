@@ -69,7 +69,7 @@ class Croissants @Inject()(
   def index = AuthenticatedAction.async { implicit request =>
     Croissant.findNotDone(getUserIdFromEmail(request.email).getOrElse("")).flatMap {
       case croissants if croissants.isEmpty =>
-        Croissant.list.map { list =>
+        Croissant.listNotDone().map { list =>
           Ok(views.html.index(list))
         }
       case croissants =>
@@ -107,12 +107,17 @@ class Croissants @Inject()(
   }
 
   def confirm(id: String) = AuthenticatedAction.async { implicit request =>
-    Croissant.findById(id).map {
+    Croissant.findById(id).flatMap {
       case Some(croissant) if croissant.victimId != request.trigram =>
-        Croissant.vote(croissant, from = request.trigram)
-        Ok(Json.obj("success" -> "Croissant confirmed"))
-      case Some(croissant) => Forbidden(Json.obj("error" -> "You can't vote for yourself (smart ass)"))
-      case None => NotFound(Json.obj("error" -> "Croissant not found :-("))
+        Croissant.vote(croissant, from = request.trigram).map { _ =>
+          Ok(Json.obj("success" -> "Croissant confirmed", "reload" -> true))
+        }
+      case Some(croissant) => Future.successful {
+        Forbidden(Json.obj("error" -> "You can't vote for yourself (smart ass)"))
+      }
+      case None => Future.successful {
+        NotFound(Json.obj("error" -> "Croissant not found :-("))
+      }
     }
   }
 

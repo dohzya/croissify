@@ -7,6 +7,7 @@ import reactivemongo.api.commands.WriteResult
 import enum.Enum
 import utils.Repository
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 sealed trait Status
@@ -34,12 +35,16 @@ case class Croissant(
   doneDate: Option[DateTime],
   status: Status,
   voters: Seq[String]
-)
+) {
+  def isDone = doneDate.isDefined
+}
 
 object Croissant extends Repository[Croissant] {
   val collectionName: String = "croissants"
   val logger = play.api.Logger("croissant")
   implicit val format: OFormat[Croissant] = Json.format[Croissant] //.asInstanceOf[OFormat[Croissant]]
+
+  val nbVotersToDone = 5
 
   def genId() = java.util.UUID.randomUUID.toString
 
@@ -56,7 +61,26 @@ object Croissant extends Repository[Croissant] {
     update(
       Json.obj("id" -> croissant.id),
       Json.obj("$addToSet" -> Json.obj("voters" -> from))
-    )
+    ).flatMap { _ =>
+      if (croissant.voters.size >= nbVotersToDone && !croissant.isDone) {
+        update(
+          Json.obj(
+            "id" -> croissant.id,
+            "doneDate" -> Json.obj("$exists" -> false)
+          ),
+          Json.obj("$set" -> Json.obj("doneDate" -> DateTime.now))
+        )
+      }
+      else Future.successful(())
+    }
+  }
+
+  def listNotDone()(implicit reactiveMongoApi: ReactiveMongoApi) = {
+    list(Json.obj(
+      "doneDate" -> Json.obj(
+        "$exists" -> false
+      )
+    ))
   }
 
   def findNotDone(victimId: String)(implicit reactiveMongoApi: ReactiveMongoApi) = {
