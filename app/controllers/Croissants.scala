@@ -3,9 +3,9 @@ package controllers
 import javax.inject.{Inject, Singleton}
 
 import common.Config
+import jobs.GmailJob
 import models.Croissant
 import modules.mail.Mail
-import play.api.Logger
 import play.api.data._
 import play.api.data.Forms._
 import play.api.mvc.{Action, ActionBuilder, Controller, Request, Result, WrappedRequest}
@@ -19,9 +19,14 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class Croissants @Inject()(
   val messagesApi: MessagesApi,
+  val gmailJob: GmailJob
+)(implicit
+  val reactiveMongoApi: ReactiveMongoApi,
   val config: Config,
-  val mailer: Mail)
-  (implicit reactiveMongoApi: ReactiveMongoApi, ec: ExecutionContext) extends Controller with I18nSupport {
+  val mailer: Mail,
+  ec: ExecutionContext) extends Controller with I18nSupport {
+
+  gmailJob.schedule(None)
 
   case class AuthenticatedRequest[A](email: String, request: Request[A]) extends WrappedRequest[A](request) {
     def trigram = email.slice(0, email.indexOf('@'))
@@ -43,31 +48,14 @@ class Croissants @Inject()(
       {
         case (from, subject, config.Api.secret) =>
           val email = from.trim
-          getUserIdFromEmail(email) match {
-            case Some(victimId) =>
-              Logger.debug(s"New croissants for : $email")
-              val mbMessage: Option[String] =
-                if(subject == null) {
-                  Some(subject)
-                }else{
-                  None
-                }
-              Croissant.add(victimId).map { _ =>
-                mailer.victim(victimId, email)
-                mailer.all(victimId, mbMessage, config.Ui.host)
-                Ok
-              }
-            case None =>
-              Logger.debug(s"Mail ignored from : $email")
-              Future.successful(Ok)
-          }
+          Croissant.addCroissant(email, subject).map(_ => Ok)
         case _ => Future.successful(Forbidden)
       }
     )
   }
 
   def index = AuthenticatedAction.async { implicit request =>
-    Croissant.findNotDone(getUserIdFromEmail(request.email).getOrElse("")).flatMap {
+    Croissant.findNotDone(Croissant.getUserIdFromEmail(request.email).getOrElse("")).flatMap {
       case croissants if croissants.isEmpty =>
         Croissant.listNotDone().map { list =>
           Ok(views.html.index(list))
@@ -79,7 +67,7 @@ class Croissants @Inject()(
   }
 
   def owned(id: String) = AuthenticatedAction.async { implicit request =>
-    val victimId = getUserIdFromEmail(request.email)
+    val victimId = Croissant.getUserIdFromEmail(request.email)
     Croissant.findById(id).map {
       case Some(croissant) if victimId.isDefined && croissant.victimId == victimId.get =>
         Ok(views.html.step1(victimId.get, croissant))
@@ -91,7 +79,7 @@ class Croissants @Inject()(
   }
 
   def schedule(id: String) = AuthenticatedAction.async { implicit request =>
-    val victimId = getUserIdFromEmail(request.email)
+    val victimId = Croissant.getUserIdFromEmail(request.email)
     Croissant.findById(id).map {
       case Some(croissant) if victimId.isDefined && croissant.victimId == victimId.get =>
         Ok(views.html.step2())
@@ -128,17 +116,6 @@ class Croissants @Inject()(
         // Croissant.pression(id)
         Ok(Json.obj("success" -> "Pression on croissant FIRED"))
       case None => NotFound(Json.obj("error" -> "Croissant not found :-("))
-    }
-  }
-
-  private def getUserIdFromEmail(email: String): Option[String] = {
-    val domains = config.Croissants.includedDomains
-    val excludedEmails = config.Croissants.excludedEmails
-
-    if (domains.exists(domain => email.endsWith(domain)) && !excludedEmails.contains(email)) {
-      Some(email.split("@")(0))
-    } else {
-      None
     }
   }
 

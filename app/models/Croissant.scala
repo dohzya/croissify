@@ -1,14 +1,18 @@
 package models
 
+import common.Config
 import org.joda.time.DateTime
 import play.api.libs.json.{JsResult, JsValue, _}
 import play.modules.reactivemongo.ReactiveMongoApi
 import reactivemongo.api.commands.WriteResult
 import enum.Enum
+import modules.mail.Mail
+import play.api.Logger
 import utils.Repository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 sealed trait Status
 object Status {
@@ -54,6 +58,26 @@ object Croissant extends Repository[Croissant] {
     Croissant.save(croissant)
   }
 
+  def addCroissant(email: String, subject: String)(implicit config: Config, mailer: Mail, reactiveMongoApi: ReactiveMongoApi): Future[Unit] = {
+    getUserIdFromEmail(email) match {
+      case Some(victimId) =>
+        Logger.debug(s"New croissants for : $email")
+        val mbMessage: Option[String] =
+          if(subject == null) {
+            Some(subject)
+          }else{
+            None
+          }
+        Croissant.add(victimId).map { _ =>
+          mailer.victim(victimId, email)
+          mailer.all(victimId, mbMessage, config.Ui.host)
+          ()
+        }
+      case None =>
+        Future.successful(Logger.debug(s"Mail ignored from : $email"))
+    }
+  }
+
   def findById(id: String)(implicit reactiveMongoApi: ReactiveMongoApi) = findByOpt(Json.obj("id" -> id))
 
   def vote(croissant: Croissant, from: String)(implicit reactiveMongoApi: ReactiveMongoApi) = {
@@ -90,6 +114,17 @@ object Croissant extends Repository[Croissant] {
         "$exists" -> false
       )
     ))
+  }
+
+  def getUserIdFromEmail(email: String)(implicit config: Config): Option[String] = {
+    val domains = config.Croissants.includedDomains
+    val excludedEmails = config.Croissants.excludedEmails
+
+    if (domains.exists(domain => email.endsWith(domain)) && !excludedEmails.contains(email)) {
+      Some(email.split("@")(0))
+    } else {
+      None
+    }
   }
 
 }

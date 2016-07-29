@@ -1,0 +1,160 @@
+package jobs
+
+import javax.inject.{Inject, Singleton}
+
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
+import akka.actor.ActorSystem
+import common.Config
+import controllers.Croissants
+import models.Croissant
+import modules.mail.Mail
+import org.joda.time.DateTime
+import play.api.libs.json.{Json, Reads}
+import play.api.libs.ws.WSClient
+import play.modules.reactivemongo.ReactiveMongoApi
+
+import scala.concurrent.Future
+import scala.util.{Failure, Success}
+
+case class AccessToken(
+  value: String,
+  refreshAt: DateTime
+)
+
+@Singleton
+class GmailJob @Inject()(
+  val ws: WSClient,
+  val system: ActorSystem
+)(implicit
+  val config: Config,
+  val reactiveMongoApi: ReactiveMongoApi,
+  val mailer: Mail) {
+
+  val logger = play.api.Logger("GmailJob")
+
+  val refreshtoken = config.Gmail.refreshtoken
+  val clientId = config.Gmail.clientId
+  val clientSecret = config.Gmail.clientSecret
+
+  val fromRegex = "(.*)<(.*)>".r
+
+  def schedule(accessToken: Option[AccessToken]): Unit = {
+    system.scheduler.scheduleOnce(5 seconds) {
+      val now = DateTime.now
+
+      val accessTokenFtr = if (accessToken.isEmpty || now.isAfter(accessToken.get.refreshAt)) {
+        refreshAccessToken()
+      } else Future.successful(accessToken.get)
+
+      val result = for {
+        accessToken <- accessTokenFtr
+        messages <- listUnreadGmailMessages(accessToken)
+      } yield (accessToken, messages)
+
+      result.onComplete {
+        case Success((accessToken, messages)) =>
+          messages.foreach { message =>
+            for {
+              from <- message.payload.headersMap.get("From")
+              (name, email) <- from match {
+                case fromRegex(name, email) => Some((name.trim, email.trim))
+              }
+              subject <- message.payload.headersMap.get("Subject").map(_.trim)
+              dkim <- message.payload.headersMap.get("X-Google-DKIM-Signature")
+            } yield {
+              Croissant.addCroissant(email, subject)
+            }
+          }
+          schedule(Some(accessToken))
+        case Failure(e) =>
+          logger.error("Error during gmail job: ", e)
+          schedule(accessToken)
+      }
+    }
+    ()
+  }
+
+  case class GmailMessage(
+    id: String,
+    payload: Payload
+  )
+  case class Payload(
+    headers: Seq[Header]
+  ) {
+    lazy val headersMap = headers.map { header =>
+      (header.name -> header.value)
+    }.toMap
+  }
+  case class Header(
+    name: String,
+    value: String
+  )
+  implicit val headerReads: Reads[Header] = Json.reads[Header]
+  implicit val payloadReads: Reads[Payload] = Json.reads[Payload]
+  implicit val gmailMessagesReads: Reads[GmailMessage] = Json.reads[GmailMessage]
+  private def listUnreadGmailMessages(accessToken: AccessToken): Future[Seq[GmailMessage]] = {
+    val gmailMessagesBaseUrl = "https://www.googleapis.com/gmail/v1/users/me/messages"
+    ws.url(gmailMessagesBaseUrl)
+      .withQueryString("q" -> "is:unread")
+      .withHeaders(
+        "Authorization" -> s"Bearer ${accessToken.value}"
+      )
+      .get()
+      .map {
+        case response if response.status == 200 =>
+          (response.json \ "messages" \\ "id").map(_.as[String])
+        case response => throw new Exception(s"Could not get new messages ids, error: ${response.status} ${response.statusText}")
+      }
+      .flatMap { ids =>
+        Future.traverse(ids) { id =>
+          for {
+            message <- {
+              ws.url(s"$gmailMessagesBaseUrl/$id")
+                .withQueryString("format" -> "metadata")
+                .withHeaders(
+                  "Authorization" -> s"Bearer ${accessToken.value}"
+                )
+                .get()
+                .map {
+                  case response if response.status == 200 =>
+                    response.json.as[GmailMessage]
+                  case response => throw new Exception(s"Could not get message $id details, error: ${response.status} ${response.statusText}")
+                }
+            }
+            _ <- {
+              ws.url(s"$gmailMessagesBaseUrl/$id/modify")
+                .withHeaders(
+                  "Authorization" -> s"Bearer ${accessToken.value}"
+                )
+                .post(Json.obj(
+                  "removeLabelIds" -> Seq("UNREAD")
+                ))
+                .map {
+                  case response if response.status == 200 => ()
+                  case response => throw new Exception(s"Could not remove UNREAD label from message $id, error: ${response.status} ${response.statusText}")
+                }
+            }
+          } yield message
+        }
+      }
+  }
+
+  private def refreshAccessToken(): Future[AccessToken] = {
+    ws.url("https://www.googleapis.com/oauth2/v3/token")
+      .post(Map(
+        "client_id" -> Seq(clientId),
+        "client_secret" -> Seq(clientSecret),
+        "grant_type" -> Seq("refresh_token"),
+        "refresh_token" -> Seq(refreshtoken)
+      ))
+      .map {
+        case response if response.status == 200 =>
+          val accessToken = (response.json \ "access_token").as[String]
+          val expiresIn = (response.json \ "expires_in").as[Int]
+          AccessToken(accessToken, DateTime.now.plus(expiresIn * 1000 / 2))
+        case response => throw new Exception(s"Could not refresh access token, error: ${response.status} ${response.statusText}")
+      }
+  }
+
+}
