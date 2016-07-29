@@ -73,7 +73,6 @@ class Croissants @Inject()(
           Ok(views.html.index(list))
         }
       case croissants =>
-        println(Console.RED + croissants)
         Future.successful(Redirect(routes.Croissants.owned(croissants.head.id)))
     }
   }
@@ -90,15 +89,18 @@ class Croissants @Inject()(
     }
   }
 
-  def schedule(id: String) = AuthenticatedAction.async { implicit request =>
+  def schedule(id: String, timestamp: Long) = AuthenticatedAction.async { implicit request =>
     val victimId = getUserIdFromEmail(request.email)
-    Croissant.findById(id).map {
+    val date = new DateTime(timestamp)
+    Croissant.findById(id).flatMap {
       case Some(croissant) if victimId.isDefined && croissant.victimId == victimId.get =>
-        Ok(views.html.step2())
+        Croissant.findByDate(date).map { croissants =>
+          Ok(views.html.step2(croissants, date))
+        }
       case Some(croissant) =>
-        Unauthorized(Json.obj("error" -> "Unauthorized"))
+        Future.successful(Unauthorized(Json.obj("error" -> "Unauthorized")))
       case None =>
-        NotFound(Json.obj("error" -> "Croissant not found :-("))
+        Future.successful(NotFound(Json.obj("error" -> "Croissant not found :-(")))
     }
   }
 
