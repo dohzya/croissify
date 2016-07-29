@@ -29,7 +29,7 @@
                         </p>
                         <p class="listBeenHad__content__item__person__howlong">
                             @defining(new Period(item.creationDate.getMillis, DateTime.now.getMillis).getDays) { days =>
-                                Il les doit depuis déjà @days jours.
+                                Il les doit depuis déjà @days jours. (@item.voters.size votes)
                             }
                         </p>
                     </div>

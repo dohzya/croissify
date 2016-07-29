@@ -73,10 +73,10 @@ class Croissants @Inject()(
 
   def confirm(id: String) = AuthenticatedAction.async { request =>
     Croissant.findById(id).map {
-      case Some(croissant) =>
-        println(s"Confirm $id by ${request.trigram}")
-        // Croissant.vote(id)
+      case Some(croissant) if croissant.victimId != request.trigram =>
+        Croissant.vote(croissant, from = request.trigram)
         Ok(Json.obj("success" -> "Croissant confirmed"))
+      case Some(croissant) => Forbidden(Json.obj("error" -> "You can't vote for yourself (smart ass)"))
       case None => NotFound(Json.obj("error" -> "Croissant not found :-("))
     }
   }
