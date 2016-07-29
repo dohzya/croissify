@@ -46,6 +46,7 @@ class Config @Inject() (conf: Configuration) {
   Oauth  // force object to be loaded
 
   object Gmail {
+    val activated = conf.getBoolean("gmail.activated").getOrElse(true)
     val refreshtoken = conf.getString("gmail.refreshtoken").getOrElse(sys.error("Missing gmail.refreshtoken"))
     val clientId = conf.getString("gmail.client.id").getOrElse(sys.error("Missing gmail.clientId"))
     val clientSecret = conf.getString("gmail.client.secret").getOrElse(sys.error("Missing gmail.clientSecret"))

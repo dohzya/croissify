@@ -26,7 +26,8 @@ class Croissants @Inject()(
   val mailer: Mail,
   ec: ExecutionContext) extends Controller with I18nSupport {
 
-  gmailJob.schedule(None)
+  if (config.Gmail.activated)
+    gmailJob.schedule(None)
 
   case class AuthenticatedRequest[A](email: String, request: Request[A]) extends WrappedRequest[A](request) {
     def trigram = email.slice(0, email.indexOf('@'))
