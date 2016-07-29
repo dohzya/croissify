@@ -114,7 +114,7 @@ class Croissants @Inject()(
     Croissant.findById(id).map {
       case Some(croissant) =>
         play.api.Logger.info(s"Make pression on $id by ${request.trigram}")
-        mailer.victim(croissant.victimId, croissant.email)
+        mailer.pression(croissant.victimId, request.trigram, croissant.email)
         Ok(Json.obj("success" -> "Pression on croissant FIRED"))
       case None => NotFound(Json.obj("error" -> "Croissant not found :-("))
     }
