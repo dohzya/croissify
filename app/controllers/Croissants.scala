@@ -104,8 +104,27 @@ class Croissants @Inject()(
     }
   }
 
-  def choose(date: String) = AuthenticatedAction.async { implicit request =>
-    Future.successful(Ok)
+  val chooseForm = Form(
+    "date" -> jodaDate("yyyy-MM-dd")
+  )
+  def choose(id: String) = AuthenticatedAction.async { implicit request =>
+    chooseForm.bindFromRequest.fold(
+      formWithErrors => {
+        Future.successful(BadRequest(formWithErrors.errorsAsJson))
+      }, { case date =>
+        val victimId = getUserIdFromEmail(request.email)
+        Croissant.findById(id).flatMap {
+          case Some(croissant) if victimId.isDefined && croissant.victimId == victimId.get =>
+            Croissant.chooseDate(id, date).map { result =>
+              Ok(views.html.step3(victimId, result))
+            }
+          case Some(croissant) =>
+            Future.successful(Unauthorized(Json.obj("error" -> "Unauthorized")))
+          case None =>
+            Future.successful(NotFound(Json.obj("error" -> "Croissant not found :-(")))
+        }
+      }
+    )
   }
 
   def confirm(id: String) = AuthenticatedAction.async { implicit request =>

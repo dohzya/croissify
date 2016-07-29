@@ -47,6 +47,15 @@ object Croissant extends Repository[Croissant] {
     Croissant.save(croissant)
   }
 
+  def chooseDate(id: String, date: DateTime)(implicit reactiveMongoApi: ReactiveMongoApi): Future[WriteResult] = {
+    val query = Json.obj(
+      "id" -> id
+    )
+    update(query, Json.obj(
+      "doneDate" -> date
+    ))
+  }
+
   def findById(id: String)(implicit reactiveMongoApi: ReactiveMongoApi) = findByOpt(Json.obj("id" -> id))
 
   def findNotDone(victimId: String)(implicit reactiveMongoApi: ReactiveMongoApi) = {

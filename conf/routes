@@ -9,7 +9,7 @@ POST    /api/actions/confirm        controllers.Croissants.confirm(id)
 POST    /api/actions/pression       controllers.Croissants.pression(id)
 
 GET     /schedule/owned/:id         controllers.Croissants.owned(id)
-POST    /schedule/choose/:date      controllers.Croissants.choose(date)
+POST    /schedule/choose/:id        controllers.Croissants.choose(id)
 GET     /schedule/:id               controllers.Croissants.schedule(id, timestamp: Long = org.joda.time.DateTime.now.getMillis)
 GET     /schedule/:id/:timestamp    controllers.Croissants.schedule(id, timestamp: Long)
 
