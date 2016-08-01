@@ -4,11 +4,14 @@ var ExtractTextPlugin = require('extract-text-webpack-plugin')
 
 module.exports = {
   entry: [
-      './app/assets/js/main.js',
+    './app/assets/js/main.js',
     './app/assets/css/main.sass'
   ],
 
   output: {
+    libraryTarget: 'umd',
+    library: 'Croissify',
+    umdNamedDefine: true,
     path: path.resolve(__dirname, 'public'),
     filename: 'javascripts/croissify.js'
   },
@@ -19,9 +22,8 @@ module.exports = {
 
   module: {
     loaders: [
-      { test: /\.js(x?)$/, loader: 'babel', exlude: /node_modules/ },
-      { test: /\.sass$/, loader: ExtractTextPlugin.extract("css!sass") },
-      { test: /\.svg/, loader: 'svg-url-loader' }
+      { test: /\.js(x?)$/, loader: 'babel', exclude: /node_modules/ },
+      { test: /\.sass$/, loader: ExtractTextPlugin.extract("css?sourceMap!sass?sourceMap") }
     ]
   },
 

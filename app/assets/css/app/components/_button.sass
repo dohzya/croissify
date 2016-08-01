@@ -10,6 +10,7 @@ button
 .btn
   position: relative
   display: flex
+  align-self: flex-start
   justify-content: center
   align-items: center
   outline: 0
@@ -20,13 +21,29 @@ button
   border: 2px solid white
   border-radius: 3px
   font-weight: bold
+  box-shadow: 0 0 0 0 transparent
+  transition: all 140ms ease-in-out
+
+  & + &
+    margin-left: 20px
+
+  &:hover,
+  &:focus
+    -webkit-filter: opacity(85%)
+    filter: opacity(85%)
+    transform: scale(1.03)
+
 
   &.large
     width: 230px
-    height: 60px
 
   &.green
+    color: white
     background-color: $green
+    border-color: $green
+
+    &.border-white
+      border-color: white
 
   &.red
     background-color: $red

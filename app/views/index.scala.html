@@ -3,34 +3,48 @@
 @(list: Seq[models.Croissant])
 
 @main {
-    <article class="lastBeenHad" data-id="nono">
-        <img class="croissant_aside" src="@routes.Assets.versioned("/images/croissant.svg")" />
-        @list.headOption.map { croissant =>
-        <div class="lastBeenHad__content">
-            <p class="lastBeenHad__content__text">
-                <b>@croissant.name</b> est le/la dernier(e) à s'être fait(e) avoir. <br />
-                <b>Il/Elle va devoir payer ses croissants !</b>
-            </p>
-            <img src="@routes.Assets.versioned("/images/arnaud.jpg")" />
-            <div class="lastBeenHad__content__actions">
-                <button class="button button--large button--green" data-action="confirm">Je confirme, il a payé</button>
-                <button class="button button--large button--red" data-action="pression">Mettre la pression</button>
-            </div>
-        </div>
+    <img class="croissant_aside" src="@routes.Assets.versioned("/images/croissant.svg")" />
+    <article class="lastBeenHad" style="background: url(@routes.Assets.versioned("/images/background.svg")) no-repeat center fixed;" data-id="nono">
+        @list.headOption match {
+            case Some(c: Croissant) => {
+                <div class="lastBeenHad__content">
+                    <div class="text">
+                        <p>
+                            <b>@c.name</b> est le/la dernier(e) à s'être fait(e) avoir...</p>
+                        <p>
+                            <b>On a besoin de ton aide pour savoir si les croissants ont bien été payés !</b>
+                        </p>
+                    </div>
+                    <div class="actions">
+                        <button class="btn large red" data-action="pression">Mettre la pression</button>
+                        <button class="btn large green" data-action="confirm">Je confirme, il a payé</button>
+                    </div>
+                </div>
+            }
+            case None => {
+                <div class="lastBeenHad__content">
+                    <div class="text">
+                        <p>
+                            Ils ont déjà tous payés leurs croissants et personne ne s'est fait avoir dernièrement... <br />
+                            Bravo, la sécurité de l'entreprise est préservée (mais on a faim !)
+                        </p>
+                    </div>
+                </div>
+            }
         }
     </article>
     <div class="listBeenHad">
         <div class="listBeenHad__content">
-            <h1 class="listBeenHad__content__title">Ils doivent payer leurs croissants</h1>
+            <h1 class="title">Ils doivent payer leurs croissants</h1>
 
             @list.map { item =>
-                <article class="listBeenHad__content__item" data-id="@item.id">
-                    <div class="listBeenHad__content__item__person">
-                        <p class="listBeenHad__content__item__person__name">
+                <article class="item" data-id="@item.id">
+                    <div class="person">
+                        <p class="name">
                             <b>@item.victimId</b>
                         </p>
 
-                        <p class="listBeenHad__content__item__person__howlong">
+                        <p class="howlong">
                             @defining(new Period(item.creationDate.getMillis, DateTime.now.getMillis).getDays) { days =>
                                 Il les doit depuis déjà @days jours. (@item.voters.size votes)
                             }
@@ -39,10 +53,10 @@
                             <p>Il compte les apporter le @{org.joda.time.format.DateTimeFormat.forPattern("dd MMMM yyyy").print(scheduleDate)}</p>
                         }
                     </div>
-                    <div class="listBeenHad__content__item__actions">
-                        <button class="button button--large button--green" data-action="confirm">Je confirme, il a payé</button>
+                    <div class="actions">
+                        <button class="btn large green border-white" data-action="confirm">Je confirme, il a payé</button>
                         @if(item.scheduleDate.isEmpty) {
-                            <button class="button button--large button--red" data-action="pression">Mettre la pression</button>
+                            <button class="btn large red" data-action="pression">Mettre la pression</button>
                         }
                     </div>
                 </article>

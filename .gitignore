@@ -18,3 +18,5 @@ node_modules/
 npm-debug.log
 .DS_Store
 .idea
+public/stylesheets/croissify.css
+public/javascripts/croissify.js
